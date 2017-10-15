@@ -1,10 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{%extends "base.html" %}
 
-</body>
-</html>
+{%block content %}
+{% include "menu.html" %}
+<div class="container-fluid">
+    <div class="row">
+        {% include "menu.html" %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="margin-top: 60px;">
+            <div class="panel panel-default">
+                <div class="panel-heading">用户信息</div>
+                <div style="margin: 20px 0px 10px 20px;">
+                <form action="{{url_for('admin.user')}}" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        {{form.username.label}}
+                        {{form.username(class="form-control",placeholder="用户名",style="width:250px;" ,readonly=True)}}
+                    </div>
+                    <div class="form-group">
+                        {{form.nickname.label}}
+                        {{form.nickname(class="form-control",placeholder="昵称",style="width:250px;")}}
+                    </div>
+                    <div class="form-group">
+                        {{form.email.label}}
+                        {{form.email(class="form-control",placeholder="邮箱",style="width:250px;")}}
+                    </div>
+                    <div class="form-group">
+                        {{form.phone.label}}
+                        {{form.phone(class="form-control",placeholder="手机",style="width:250px;")}}
+                    </div>
+                    <div class="form-group">
+                        {{form.face.label}}
+                        <p> {{form.face}}</p>
+                        {% if user.face %}
+                            <img src="{{url_for('static',filename='uploads/'+user.face)}}"  class="img-circle" style="width: 110px;height: 110px">
+                        {% else %}
+                            <img src="{{url_for('static',filename='uploads/face.jpg')}}"  class="img-circle" style="width: 110px;height: 110px">
+                        {% endif %}
+                    </div>
+                    {{ form.csrf_token }}
+                    <button class="btn btn-default">保存</button>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
