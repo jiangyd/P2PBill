@@ -6,7 +6,7 @@
     <div class="row">
         {% include "menu.html" %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="margin-top: 60px">
-            <button class="btn btn-default" type="submit" style="margin-bottom: 10px">添加</button>
+            <a class="btn btn-default" data-toggle="modal" href="{{url_for('admin.addbillflow',id=item.id)}}" data-target="#billflow" >添加</a>
             <div class="panel panel-default">
                 <div class="panel-heading">资金流水</div>
 
@@ -39,11 +39,19 @@
                 </div>
             </div>
             <div class="clearfix" style="text-align: right">
-                {{pg.page(page_data,"admin.loginlog")}}
+                {{pg.page(page_data,"admin.billflow")}}
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade " id="billflow" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 
