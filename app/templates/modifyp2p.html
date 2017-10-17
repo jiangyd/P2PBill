@@ -1,0 +1,41 @@
+<div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">×
+                </button>
+                <h4 class="modal-title" id="myModalLabel">修改P2P平台</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" action="{{url_for('admin.addp2p')}}" method="post">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">平台名称</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="p2p_name" placeholder="请输入平台名称" value="{{p2p.name}}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">平台网址</label>
+                        <div class="col-sm-10">
+                            <input type="url" class="form-control" name="p2p_url" placeholder="请输入平台网址" value="{{p2p.url}}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="funds_deposit" {% if p2p.funds_deposit%} checked {% endif %}> 资金存管
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="risk_deposit" {% if p2p.risk_deposit%} checked {% endif %}> 风险金存管
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-left: 88%">确认</button>
+                </form>
+            </div>

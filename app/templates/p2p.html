@@ -2,6 +2,7 @@
 {% import "page.html" as pg %}
 {%block content %}
 {% include "menu.html" %}
+{% include "confirm.html" %}
 <div class="container-fluid">
     <div class="row">
         {% include "menu.html" %}
@@ -42,8 +43,10 @@
                                 <span class="label label-danger">否</span>
                                 {% endif %}
                             <td>
-                                <button class="btn btn-default btn-xs" type="button">修改</button>
-                                <button class="btn btn-danger btn-xs" type="button">删除</button>
+                                <a class="btn btn-primary btn-xs" data-toggle="modal" href="{{url_for('admin.modifyp2p',id=item.id)}}" data-target="#modifyp2p" >修改</a>
+                                <a class="btn btn-danger btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.delp2p',id=item.id)}}">
+                                    删除
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -106,6 +109,35 @@
 
     </div>
 </div>
+
+
+
+
+
+
+
+<div class="modal fade " id="modifyp2p" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            
+        </div>
+
+    </div>
+</div>
+
+<script>
+    $("#modifybank").on("hidden", function() {
+    $(this).removeData("modal");
+});
+
+    $(document).ready(function () {
+        $(".delbank").click(function () {
+            var url=$(this).attr("rel");
+            $("#delcfmModel .modal-footer > a").attr("href",url);
+        })
+    })
+
+</script>
 {% endblock %}
 
 

@@ -6,7 +6,7 @@
     <div class="row">
         {% include "menu.html" %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="margin-top: 60px">
-            <button class="btn btn-default" type="submit" style="margin-bottom: 10px">添加</button>
+            <a class="btn btn-default" data-toggle="modal" href="{{url_for('admin.adduserp2p')}}" data-target="#userp2p" style="margin-top: 5px;margin-bottom: 10px">添加</a>
             <div class="panel panel-default">
                 <div class="panel-heading">用户平台</div>
 
@@ -16,18 +16,19 @@
                         <tr>
                             <th>#</th>
                             <th>平台名称</th>
-                            <th>平台网址</th>
-                            <th>资金存管</th>
-                            <th>风险金存管</th>
+                            <th>平台帐号</th>
+                            <th>平台密码</th>
+                            <th>手机</th>
+                            <th>银行卡信息</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for item in page_data.items %}
                         <tr>
                             <td>{{item.id}}</td>
-                            <td>{{item.user.username}}</td>
-                            <td>{{item.name}}</td>
-                            <td>{{item.card}}</td>
+                            <td>{{item.accout}}</td>
+                            <td>{{item.password}}</td>
+                            <td>{{item.card_id.name}}</td>
                             <td>
                                 <button class="btn btn-default btn-xs " type="submit">修改</button>
                                 <button class="btn btn-danger btn-xs" type="submit">删除</button>
@@ -42,6 +43,16 @@
                 {{pg.page(page_data,"admin.loginlog")}}
             </div>
         </div>
+    </div>
+</div>
+
+
+<div class="modal fade " id="userp2p" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+
     </div>
 </div>
 {% endblock %}

@@ -1,5 +1,5 @@
 # from flask import Flask
-#
+
 # from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash,check_password_hash
@@ -8,7 +8,7 @@ from app import db
 # #
 # app=Flask(__name__)
 # #
-# app.config["SQLALCHEMY_DATABASE_URI"]="mysql+pymysql://root:123456@127.0.0.1:3306/p2pbill"
+# app.config["SQLALCHEMY_DATABASE_URI"]="mysql+pymysql://root:123456@192.168.56.102:3377/p2pbill"
 # db=SQLAlchemy(app)
 
 #平台信息表
@@ -64,6 +64,13 @@ class Invest(db.Model):
 #用户平台关联表
 class UserP2P(db.Model):
     __tablename__="userp2p"
+    def __init__(self,p2p_id,user_id,account,password,card_id,phone):
+        self.p2p_id=p2p_id
+        self.user_id=user_id
+        self.account=account
+        self.password=password
+        self.card_id=card_id
+        self.phone=phone
     id=db.Column(db.Integer,primary_key=True)
     p2p_id=db.Column(db.Integer,db.ForeignKey("p2p.id")) #外键关联p2p
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -110,8 +117,8 @@ class Loginlog(db.Model):
 
 
 if __name__=="__main__":
-    pass
-    # db.create_all()
-    # user=User(username="admin",password=generate_password_hash("Qwe123123"),nickname="道可道",email="962584902@qq.com",phone="15821834763")
-    # db.session.add(user)
-    # db.session.commit()
+    # pass
+    db.create_all()
+    user=User(username="admin",password=generate_password_hash("Qwe123123"),nickname="道可道",email="962584902@qq.com",phone="15821834763")
+    db.session.add(user)
+    db.session.commit()
