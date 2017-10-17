@@ -32,8 +32,8 @@
                             <td>{{item.phone}}</td>
                             <td>{{item.bankcard.name}} {{item.bankcard.card}}</td>
                             <td>
-                                <button class="btn btn-default btn-xs " type="submit">修改</button>
-                                <button class="btn btn-danger btn-xs" type="submit">删除</button>
+                                <a class="btn btn-primary btn-xs" data-toggle="modal" href="{{url_for('admin.modifyuserp2p',id=item.id)}}" data-target="#modifyuserp2p" >修改</a>
+                                <a class="btn btn-danger btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.deluserp2p',id=item.id)}}">删除</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -50,6 +50,16 @@
 
 
 <div class="modal fade " id="userp2p" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade " id="modifyuserp2p" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 

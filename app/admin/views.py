@@ -96,6 +96,44 @@ def adduserp2p():
         print("dsffs")
         return redirect(url_for("admin.userp2p",page=1))
 
+@admin.route("/userp2p/modify",methods=["GET","POST"])
+@admin_login_req
+def modifyuserp2p():
+    if request.method=="GET":
+        banks = BankCard.query.all()
+        p2ps = P2P.query.all()
+        id = int(request.args.get("id"))
+        userp2p = UserP2P.query.filter_by(id=id).first()
+        return render_template("modifyuserp2p.html",userp2p=userp2p,banks=banks,p2ps=p2ps)
+    if request.method=="POST":
+        id = int(request.form.get("id"))
+        p2p_id=request.form.get("p2p_id")
+        card_id=request.form.get("card_id")
+        account=request.form.get("account")
+        password=request.form.get("password")
+        phone = request.form.get("phone")
+        userp2p = UserP2P.query.filter_by(id=id).first()
+        userp2p.p2p_id=p2p_id
+        userp2p.card_id=card_id
+        userp2p.account=account
+        userp2p.password=password
+        userp2p.phone=phone
+        db.session.add(userp2p)
+        db.session.commit()
+        return redirect(url_for("admin.userp2p",page=1))
+
+
+
+@admin.route("/userp2p/del",methods=["GET"])
+@admin_login_req
+def deluserp2p():
+    if request.method=="GET":
+        id=int(request.args.get("id"))
+        userp2p=UserP2P.query.filter_by(id=id).first()
+        db.session.delete(userp2p)
+        db.session.commit()
+        return redirect(url_for("admin.userp2p",page=1))
+
 
 
 # 平台信息
@@ -136,12 +174,12 @@ def modifyp2p():
         url = request.form.get("p2p_url")
         funds_deposit = request.form.get("funds_deposit")
         risk_deposit = request.form.get("risk_deposit")
-        p2p = P2P.query.filter_by(id=id)
+        p2p = P2P.query.filter_by(id=id).first()
         p2p.name = name
         p2p.url = url
         p2p.funds_deposit = True if funds_deposit else False
         p2p.risk_deposit = True if risk_deposit else False
-        db.session.add("p2p")
+        db.session.add(p2p)
         db.session.commit()
         return redirect(url_for("admin.p2p", page=1))
     return render_template("modifyp2p.html", p2p=p2p)
