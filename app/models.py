@@ -26,6 +26,7 @@ class P2P(db.Model):
     risk_deposit=db.Column(db.Boolean,default=False)  #风险金存管
     invests=db.relationship('Invest',backref="p2p") #投资记录外键关联关系
     userp2ps=db.relationship('UserP2P',backref="p2p")#用户平台外键关联关系
+    billflow=db.relationship("BillFlow",backref="p2p") #资金流水外键关联关系
 
 
 #用户信息表
@@ -85,10 +86,11 @@ class BillFlow(db.Model):
     __tablename__="billflow"
     id=db.Column(db.Integer,primary_key=True)
     card_id=db.Column(db.Integer,db.ForeignKey("bankcard.id"))
+    p2p_id=db.Column(db.Integer,db.ForeignKey("p2p.id"))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     money=db.Column(db.Integer) #金额
     status=db.Column(db.Integer,default=0) #0进行中,1已完成
-    action=db.Column(db.Integer) #0 充值，1 提现
+    type=db.Column(db.Integer) #0 充值，1 提现
 
 #银行卡管理
 class BankCard(db.Model):
