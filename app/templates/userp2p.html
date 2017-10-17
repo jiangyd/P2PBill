@@ -26,9 +26,11 @@
                         {% for item in page_data.items %}
                         <tr>
                             <td>{{item.id}}</td>
-                            <td>{{item.accout}}</td>
+                            <td>{{item.p2p.name}}</td>
+                            <td>{{item.account}}</td>
                             <td>{{item.password}}</td>
-                            <td>{{item.card_id.name}}</td>
+                            <td>{{item.phone}}</td>
+                            <td>{{item.bankcard.name}} {{item.bankcard.card}}</td>
                             <td>
                                 <button class="btn btn-default btn-xs " type="submit">修改</button>
                                 <button class="btn btn-danger btn-xs" type="submit">删除</button>

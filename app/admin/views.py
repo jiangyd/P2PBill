@@ -82,15 +82,18 @@ def adduserp2p():
         p2ps=P2P.query.all()
         return render_template("adduserp2p.html",p2ps=p2ps,banks=banks)
     if request.method=="POST":
+        print("sfaddsfadadsfasdfdfasfa")
         p2p_id=request.form.get("p2p_id")
         account=request.form.get("account")
         password=request.form.get("password")
         phone=request.form.get("phone")
         card_id=request.form.get("card_id")
         print("p2p_id",p2p_id)
+        print("card_id",card_id)
         userp2p=UserP2P(p2p_id=p2p_id,user_id=int(session.get("userid")),account=account,password=password,card_id=card_id,phone=phone)
         db.session.add(userp2p)
         db.session.commit()
+        print("dsffs")
         return redirect(url_for("admin.userp2p",page=1))
 
 

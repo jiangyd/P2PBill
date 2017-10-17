@@ -43,7 +43,7 @@
                                 <span class="label label-danger">否</span>
                                 {% endif %}
                             <td>
-                                <a class="btn btn-primary btn-xs" data-toggle="modal" href="{{url_for('admin.modifyp2p',id=item.id)}}" data-target="#modifyp2p" >修改</a>
+                                <a class="btn btn-primary btn-xs" data-toggle="modal" href="{{url_for('admin.modifyp2p',id=item.id)}}&r={{item.id}}" data-target="#modifyp2p" >修改</a>
                                 <a class="btn btn-danger btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.delp2p',id=item.id)}}">
                                     删除
                                 </a>
@@ -126,8 +126,11 @@
 </div>
 
 <script>
-    $("#modifybank").on("hidden", function() {
-    $(this).removeData("modal");
+    $("#modifyp2p").on("hidden.bs.modal", function() {
+    $(this).removeData("bs.modal");
+});
+        $("#p2p").on("hidden.bs.modal", function() {
+    $(this).removeData();
 });
 
     $(document).ready(function () {

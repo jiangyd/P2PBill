@@ -26,7 +26,7 @@ class P2P(db.Model):
     risk_deposit=db.Column(db.Boolean,default=False)  #风险金存管
     invests=db.relationship('Invest',backref="p2p") #投资记录外键关联关系
     userp2ps=db.relationship('UserP2P',backref="p2p")#用户平台外键关联关系
-    billflow=db.relationship("BillFlow",backref="p2p") #资金流水外键关联关系
+    billflows=db.relationship("BillFlow",backref="p2p") #资金流水外键关联关系
 
 
 #用户信息表
@@ -41,9 +41,9 @@ class User(db.Model):
     face=db.Column(db.String(255)) #头像
     loginlogs=db.relationship("Loginlog",backref="user")
     bankcards=db.relationship("BankCard",backref="user")
-    invest = db.relationship("Invest", backref="user")
-    userp2p = db.relationship("UserP2P", backref="user")
-    billflow = db.relationship("BillFlow", backref="user")
+    invests = db.relationship("Invest", backref="user")
+    userp2ps = db.relationship("UserP2P", backref="user")
+    billflows = db.relationship("BillFlow", backref="user")
     def check_pwd(self,pwd):
         return check_password_hash(self.password,pwd)
 
