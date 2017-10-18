@@ -84,6 +84,12 @@ class UserP2P(db.Model):
 #资金流水记录表
 class BillFlow(db.Model):
     __tablename__="billflow"
+    def __init__(self,card_id,p2p_id,user_id,money,type):
+        self.card_id=card_id
+        self.p2p_id=p2p_id
+        self.user_id=user_id
+        self.money=money
+        self.type=type
     id=db.Column(db.Integer,primary_key=True)
     card_id=db.Column(db.Integer,db.ForeignKey("bankcard.id"))
     p2p_id=db.Column(db.Integer,db.ForeignKey("p2p.id"))
@@ -91,6 +97,8 @@ class BillFlow(db.Model):
     money=db.Column(db.Integer) #金额
     status=db.Column(db.Integer,default=0) #0进行中,1已完成
     type=db.Column(db.Integer) #0 充值，1 提现
+    addtime=db.Column(db.DateTime,default=datetime.now) #添加时间
+    donetime=db.Column(db.DateTime) #完成时间
 
 #银行卡管理
 class BankCard(db.Model):

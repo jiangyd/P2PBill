@@ -65,6 +65,46 @@ def billflow(page=None):
     page_data = BillFlow.query.filter_by(user_id=int(session.get("userid"))).paginate(page=page, per_page=10)
     return render_template("billflow.html", billflowpage=True, page_data=page_data)
 
+@admin.route("/billflow/add",methods=["GET","POST"])
+@admin_login_req
+def addbillflow():
+    if request.method=="GET":
+        p2ps=P2P.query.all()
+        banks=BankCard.query.filter_by(user_id=int(session.get("userid")))
+        return render_template("addbillflow.html",banks=banks,p2ps=p2ps)
+    if request.method=="POST":
+        p2p_id=request.form.get("p2p_id")
+        card_id=request.form.get("card_id")
+        money=request.form.get("money")
+        type=request.form.get("type")
+        billflow=BillFlow(p2p_id=p2p_id,card_id=card_id,money=int(money),type=int(type),user_id=session.get("userid"))
+        db.session.add(billflow)
+        db.session.commit()
+        return redirect(url_for("admin.billflow",page=1))
+
+#完成资金流水
+@admin.route("/billflow/done",methods=["GET"])
+@admin_login_req
+def donebillflow():
+    if request.method=="GET":
+        id=int(request.args.get("id"))
+        billflow=BillFlow.query.filter_by(id=id).first()
+        billflow.status=1
+        billflow.donetime=datetime.now()
+        db.session.add(billflow)
+        db.session.commit()
+        return redirect(url_for("admin.billflow",page=1))
+
+#删除资金流水
+@admin.route("/billflow/del",methods=["GET"])
+@admin_login_req
+def delbillflow():
+    if request.method=="GET":
+        id=int(request.args.get("id"))
+        billflow=BillFlow.query.filter_by(id=id).first()
+        db.session.delete(billflow)
+        db.session.commit()
+        return redirect(url_for("admin.billflow",page=1))
 
 # 用户平台
 @admin.route("/userp2p/<int:page>", methods=["GET"])
@@ -82,18 +122,14 @@ def adduserp2p():
         p2ps=P2P.query.all()
         return render_template("adduserp2p.html",p2ps=p2ps,banks=banks)
     if request.method=="POST":
-        print("sfaddsfadadsfasdfdfasfa")
         p2p_id=request.form.get("p2p_id")
         account=request.form.get("account")
         password=request.form.get("password")
         phone=request.form.get("phone")
         card_id=request.form.get("card_id")
-        print("p2p_id",p2p_id)
-        print("card_id",card_id)
         userp2p=UserP2P(p2p_id=p2p_id,user_id=int(session.get("userid")),account=account,password=password,card_id=card_id,phone=phone)
         db.session.add(userp2p)
         db.session.commit()
-        print("dsffs")
         return redirect(url_for("admin.userp2p",page=1))
 
 @admin.route("/userp2p/modify",methods=["GET","POST"])

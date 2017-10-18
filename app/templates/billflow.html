@@ -2,11 +2,12 @@
 {% import "page.html" as pg %}
 {%block content %}
 {% include "menu.html" %}
+{% include "confirm.html" %}
 <div class="container-fluid">
     <div class="row">
         {% include "menu.html" %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="margin-top: 60px">
-            <a class="btn btn-default" data-toggle="modal" href="{{url_for('admin.addbillflow',id=item.id)}}" data-target="#billflow" >添加</a>
+            <a class="btn btn-default" data-toggle="modal" href="{{url_for('admin.addbillflow')}}" data-target="#billflow" style="margin-top: 5px;margin-bottom: 10px">添加</a>
             <div class="panel panel-default">
                 <div class="panel-heading">资金流水</div>
 
@@ -15,22 +16,38 @@
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>平台名称</th>
-                            <th>平台网址</th>
-                            <th>资金存管</th>
-                            <th>风险金存管</th>
+                            <th>平台</th>
+                            <th>银行卡</th>
+                            <th>金额</th>
+                            <th>类型</th>
+                            <th>状态</th>
+                            <th>用户</th>
+                            <th>操作时间</th>
+                            <th>完成时间</th>
+                            <th>操作</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for item in page_data.items %}
                         <tr>
                             <td>{{item.id}}</td>
+                            <td>{{item.p2p.name}}</td>
+                            <td>{{item.bankcard.name}}{{item.bankcard.card}}</td>
+                            <td>{{item.money}}</td>
+                            <td>{% if item.type==0%}<span class="label label-info">充值</span>{% elif item.type==1%}<span class="label label-warning">提现</span>{%endif%}</td>
+                            <td>{% if item.status==0%}<span class="label label-warning">进行中</span>{% elif item.status==1%}<span class="label label-success">已完成</span>{%endif%}</td>
                             <td>{{item.user.username}}</td>
-                            <td>{{item.name}}</td>
-                            <td>{{item.card}}</td>
+                            <td>{{item.addtime}}</td>
+                            <td>{% if item.donetime %}{{item.donetime}}{%else%}--{%endif%}</td>
                             <td>
-                                <button class="btn btn-default btn-xs" type="submit">修改</button>
-                                <button class="btn btn-danger btn-xs" type="submit">删除</button>
+                                {% if not item.donetime%}
+                                <a class="btn btn-primary btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.donebillflow',id=item.id)}}" >完成</a>
+
+                                <a class="btn btn-danger btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.delbillflow',id=item.id)}}">删除</a>
+                                {%else%}
+                                --
+                                {%endif%}
+
                             </td>
                         </tr>
                         {% endfor %}
@@ -51,6 +68,18 @@
         </div>
     </div>
 </div>
+
+<script>
+
+
+    $(document).ready(function () {
+        $(".delbank").click(function () {
+            var url=$(this).attr("rel");
+            $("#delcfmModel .modal-footer > a").attr("href",url);
+        })
+    })
+
+</script>
 
 {% endblock %}
 
