@@ -1,10 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap-datetimepicker.min.css')}}">
+<script type="text/javascript" src="{{url_for('static',filename='js/bootstrap-datetimepicker.min.js')}}"
+        charset="UTF-8"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/local/bootstrap-datetimepicker.zh-CN.js')}}"
+        charset="UTF-8"></script>
+<div class="modal-header ">
+    <button type="button" class="close" data-dismiss="modal"
+            aria-hidden="true">×
+    </button>
+    <h4 class="modal-title" id="myModalLabel">添加投资记录</h4>
+</div>
+<div class="modal-body">
+    <form class="form-horizontal" action="{{url_for('admin.addinvest')}}" method="post">
+        <div class="form-group">
+            <label class="col-sm-2 control-label">所属平台</label>
+            <div class="col-sm-10">
+                <select class="form-control" name="p2p_id">
+                    <option>请选择</option>
+                    {% for item in p2ps %}
+                    <option value="{{item.id}}">{{item.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">年利率</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="profit" placeholder="请输入年利率">
+            </div>
+        </div>
 
-</body>
-</html>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">金额</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="money" placeholder="请输入金额">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">开始时间</label>
+            <div class="col-sm-10">
+                <div class="input-append date form_datetime" id="start">
+                    <input   class="form-control form_datetime date" type="text" value="" readonly style="width: 160px" name="start_time">
+                    <span class="add-on"><i class="icon-remove"></i></span>
+                    <span class="add-on"><i class="icon-th"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">结束时间</label>
+            <div class="col-sm-10">
+                <div class="input-append date form_datetime" id="end">
+                    <input   class="form-control form_datetime date" type="text" value="" readonly style="width: 160px" name="end_time">
+                    <span class="add-on"><i class="icon-remove"></i></span>
+                    <span class="add-on"><i class="icon-th"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">预期收益</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="lucre" placeholder="请输入收益">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-left: 88%">确认</button>
+
+    </form>
+</div>
+<script>
+    $('#start').datetimepicker({
+        format: 'yyyy-mm-dd hh:ii:ss',
+        language: 'zh-CN',
+        todayBtn: true,
+        autoclose:true,
+        minuteStep: 5,
+
+
+
+    });
+    $('#end').datetimepicker({
+        format: 'yyyy-mm-dd hh:ii:ss',
+        language: 'zh-CN',
+        todayBtn: true,
+        autoclose:true,
+        minuteStep: 5,
+    });
+</script>

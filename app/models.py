@@ -46,18 +46,27 @@ class User(db.Model):
     billflows = db.relationship("BillFlow", backref="user")
     def check_pwd(self,pwd):
         return check_password_hash(self.password,pwd)
+    def set_pwd(self,pwd):
+        self.password=generate_password_hash(pwd)
 
 
 #投资记录表
 class Invest(db.Model):
     __tablename__="Invest"
+    def __init__(self,p2p_id,user_id,money,start_time,end_time,profit,lucre):
+        self.p2p_id=p2p_id
+        self.user_id=user_id
+        self.money=money
+        self.start_time=start_time
+        self.end_time=end_time
+        self.profit=profit
+        self.lucre=lucre
     id=db.Column(db.Integer,primary_key=True)
     p2p_id=db.Column(db.Integer,db.ForeignKey('p2p.id')) #外键关联p2p
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     money=db.Column(db.Integer) #投资金额
     start_time=db.Column(db.DateTime)# 投资开始时间
     end_time=db.Column(db.DateTime)# 投资到期时间
-    days=db.Column(db.Integer) #投资周期天数,可以不用手动填写
     profit=db.Column(db.Integer) #年利润
     lucre=db.Column(db.Integer)  #收益
     status=db.Column(db.Integer,default=0) #0投资中,1已到期,2已完成

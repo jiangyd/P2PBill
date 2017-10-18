@@ -6,6 +6,7 @@
     <div class="row">
         {% include "menu.html" %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="margin-top: 60px">
+            <a class="btn btn-default" data-toggle="modal" href="{{url_for('admin.addinvest')}}" data-target="#invest" style="margin-top: 5px;margin-bottom: 10px">添加</a>
             <div class="panel panel-default">
                 <div class="panel-heading">投资记录</div>
 
@@ -15,18 +16,26 @@
                         <tr>
                             <th>#</th>
                             <th>平台名称</th>
-                            <th>平台网址</th>
-                            <th>资金存管</th>
-                            <th>风险金存管</th>
+                            <th>开始时间</th>
+                            <th>结束时间</th>
+                            <th>金额(¥)</th>
+                            <th>年利率(%)</th>
+                            <th>收益(¥)</th>
+                            <th>状态</th>
+                            <th>操作</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for item in page_data.items %}
                         <tr>
                             <td>{{item.id}}</td>
-                            <td>{{item.user.username}}</td>
-                            <td>{{item.name}}</td>
-                            <td>{{item.card}}</td>
+                            <td>{{item.p2p.name}}</td>
+                            <td>{{item.start_time}}</td>
+                            <td>{{item.end_time}}</td>
+                            <td>{{item.money}}</td>
+                            <td>{{item.profit}}</td>
+                            <td>{{item.lucre}}</td>
+                            <td>{% if item.status==0%}<span class="label label-info">进行中</span>{%elif item.status==1%}<span class="label label-warning">已到期</span>{%else%}<span class="label label-success">已完成</span>{%endif%}</td>
                             <td>
                                 <button class="btn btn-default btn-xs" type="submit">修改</button>
                                 <button class="btn btn-danger btn-xs" type="submit">删除</button>
@@ -38,11 +47,20 @@
                 </div>
             </div>
             <div class="clearfix" style="text-align: right">
-                {{pg.page(page_data,"admin.loginlog")}}
+                {{pg.page(page_data,"admin.invest")}}
             </div>
         </div>
     </div>
 </div>
+
+
+<div class="modal fade " id="invest" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 

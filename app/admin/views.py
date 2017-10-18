@@ -40,6 +40,31 @@ def login():
     return render_template("login.html", form=form, error=error)
 
 
+@admin.route("/logout",methods=["GET"])
+@admin_login_req
+def logout():
+    session.pop("userid")
+    session.pop("login")
+    return redirect(url_for("admin.login"))
+
+@admin.route("/modifypwd",methods=["POST"])
+@admin_login_req
+def modifypwd():
+    oldpwd=request.form.get("oldpwd")
+    newpwd=request.form.get("newpwd")
+    repwd=request.form.get("repwd")
+    id=int(session.get("userid"))
+    user=User.query.filter_by(id=id).first()
+    if user.check_pwd(oldpwd):
+        if newpwd==repwd:
+            user.set_pwd(newpwd)
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for("admin.logout"))
+    return redirect(url_for("admin.index"))
+
+
+
 @admin.route("/index")
 @admin_login_req
 def index():
@@ -64,6 +89,25 @@ def billflow(page=None):
         page = 1
     page_data = BillFlow.query.filter_by(user_id=int(session.get("userid"))).paginate(page=page, per_page=10)
     return render_template("billflow.html", billflowpage=True, page_data=page_data)
+
+
+@admin.route("/invest/add",methods=["GET","POST"])
+@admin_login_req
+def addinvest():
+    if request.method=="GET":
+        p2ps = P2P.query.all()
+        return render_template("addinvest.html",p2ps=p2ps)
+    if request.method=="POST":
+        p2p_id=request.form.get("p2p_id")
+        profit=request.form.get("profit")
+        money=request.form.get("money")
+        start_time=request.form.get("start_time")
+        end_time=request.form.get("end_time")
+        lucre=request.form.get("lucre")
+        invest=Invest(p2p_id=p2p_id,user_id=int(session.get("userid")),profit=profit,money=money,start_time=start_time,end_time=end_time,lucre=lucre)
+        db.session.add(invest)
+        db.session.commit()
+        return redirect(url_for("admin.invest",page=1))
 
 @admin.route("/billflow/add",methods=["GET","POST"])
 @admin_login_req
