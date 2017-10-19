@@ -1,6 +1,6 @@
 from . import admin
 
-from flask import render_template, redirect, url_for, session, request,jsonify
+from flask import render_template, redirect, url_for, session, request,jsonify,flash
 from .forms import LoginForm, UserForm, BankCardForm
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow
 from functools import wraps
@@ -81,16 +81,7 @@ def invest(page=None):
     return render_template("invest.html", investpage=True, page_data=page_data)
 
 
-# 资金流水
-@admin.route("/billflow/<int:page>", methods=["GET"])
-@admin_login_req
-def billflow(page=None):
-    if page is None:
-        page = 1
-    page_data = BillFlow.query.filter_by(user_id=int(session.get("userid"))).paginate(page=page, per_page=10)
-    return render_template("billflow.html", billflowpage=True, page_data=page_data)
-
-
+#添加投资记录
 @admin.route("/invest/add",methods=["GET","POST"])
 @admin_login_req
 def addinvest():
@@ -109,6 +100,47 @@ def addinvest():
         db.session.commit()
         return redirect(url_for("admin.invest",page=1))
 
+
+#删除投资记录
+@admin.route("/invest/del",methods=["GET"])
+@admin_login_req
+def delinvest():
+    id=int(request.args.get("id"))
+    invest=Invest.query.filter_by(id=id).first()
+    print(invest)
+    db.session.delete(invest)
+    db.session.commit()
+    return redirect(url_for("admin.invest",page=1))
+
+@admin.route("/invest/done",methods=["GET"])
+@admin_login_req
+def doneinvest():
+    id=int(request.args.get("id"))
+    invest=Invest.query.filter_by(id=id).first()
+    if invest.status!=1:
+        flash("当前投资还未到期")
+        return redirect(url_for("admin.invest",page=1))
+    #只有投资状态为到期才能确认
+    invest.status=2
+    db.session.add(invest)
+    db.session.commit()
+    return redirect(url_for("admin.invest", page=1))
+
+
+
+
+# 资金流水
+@admin.route("/billflow/<int:page>", methods=["GET"])
+@admin_login_req
+def billflow(page=None):
+    if page is None:
+        page = 1
+    page_data = BillFlow.query.filter_by(user_id=int(session.get("userid"))).paginate(page=page, per_page=10)
+    return render_template("billflow.html", billflowpage=True, page_data=page_data)
+
+
+
+#添加资金流水
 @admin.route("/billflow/add",methods=["GET","POST"])
 @admin_login_req
 def addbillflow():

@@ -2,6 +2,7 @@
 {% import "page.html" as pg %}
 {%block content %}
 {% include "menu.html" %}
+{% include "confirm.html"%}
 <div class="container-fluid">
     <div class="row">
         {% include "menu.html" %}
@@ -35,10 +36,17 @@
                             <td>{{item.money}}</td>
                             <td>{{item.profit}}</td>
                             <td>{{item.lucre}}</td>
-                            <td>{% if item.status==0%}<span class="label label-info">进行中</span>{%elif item.status==1%}<span class="label label-warning">已到期</span>{%else%}<span class="label label-success">已完成</span>{%endif%}</td>
+                            <td>{% if item.status==0%}<span class="label label-info">进行中</span>{%elif item.status==1%}<span class="label label-warning">已到期</span>{%else%}<span class="label label-success">已确认</span>{%endif%}</td>
                             <td>
-                                <button class="btn btn-default btn-xs" type="submit">修改</button>
-                                <button class="btn btn-danger btn-xs" type="submit">删除</button>
+                                {% if item.status==0%}
+                                <a class="btn btn-danger btn-xs delinvest"  data-toggle="modal" data-target="#cfmModel" rel="{{url_for('admin.delinvest',id=item.id)}}">
+                                    删除
+                                </a>
+                                {% elif item.status==1 %}
+                                <a class="btn btn-danger btn-xs doneinvest"  data-toggle="modal" data-target="#cfmModel" rel="{{url_for('admin.doneinvest',id=item.id)}}">
+                                    确认
+                                </a>
+                                {%endif%}
                             </td>
                         </tr>
                         {% endfor %}
@@ -60,7 +68,30 @@
         </div>
     </div>
 </div>
+<script>
+    $("#modifyp2p").on("hidden.bs.modal", function() {
+    $(this).removeData("bs.modal");
+});
+        $("#p2p").on("hidden.bs.modal", function() {
+    $(this).removeData();
+});
 
+    $(document).ready(function () {
+        $(".delinvest").click(function () {
+            var url=$(this).attr("rel");
+            $("#cfmModel .modal-footer > a").attr("href",url);
+        });
+        $(".doneinvest").click(function () {
+            var url=$(this).attr("rel");
+            $("#cfmModel .modal-footer > a").attr("href",url);
+        });
+        $(".doneinvest").click(function () {
+            var url=$(this).attr("rel");
+            $("#cfmModel .modal-body > p").text("您确认要进行此操作吗？");
+        });
+    })
+
+</script>
 {% endblock %}
 
 

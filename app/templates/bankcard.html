@@ -33,7 +33,7 @@
                             <td>{{item.card}}</td>
                             <td>
                                 <a class="btn btn-primary btn-xs" data-toggle="modal" href="{{url_for('admin.modifybank',id=item.id)}}" data-target="#modifybank" >修改</a>
-                                <a class="btn btn-danger btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.delbank',id=item.id)}}">
+                                <a class="btn btn-danger btn-xs delbank"  data-toggle="modal" data-target="#cfmModel" rel="{{url_for('admin.delbank',id=item.id)}}">
                                     删除
                                 </a>
                             </td>
@@ -107,7 +107,7 @@
     $(document).ready(function () {
         $(".delbank").click(function () {
             var url=$(this).attr("rel");
-            $("#delcfmModel .modal-footer > a").attr("href",url);
+            $("#cfmModel .modal-footer > a").attr("href",url);
         })
     })
 

@@ -15,7 +15,9 @@
         $.ajax({
             url: '/admin/userinfo',
             success: function (data) {
-                alert(data)
+                $("#username").text(data.nickname)
+                $("#username").attr("href","{{url_for('admin.user')}}")
+                $("#img").attr("src","{{url_for('admin.user')}}")
             }
         })
     })
@@ -27,9 +29,11 @@
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
-                <li>
 
+<img src="{{url_for('static',filename='uploads/face.jpg')}}"  class="img-circle" style="width: 49px;height: 49px" id="img">
                 </li>
+
+                <li><a href="" id="username"></a></li>
                 <li><a data-toggle="modal" href="#" data-target="#modifypwd">修改密码</a></li>
                 <li><a href="{{url_for('admin.logout')}}">退出</a></li>
             </ul>

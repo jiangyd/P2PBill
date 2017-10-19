@@ -35,15 +35,15 @@
                             <td>{{item.bankcard.name}}{{item.bankcard.card}}</td>
                             <td>{{item.money}}</td>
                             <td>{% if item.type==0%}<span class="label label-info">充值</span>{% elif item.type==1%}<span class="label label-warning">提现</span>{%endif%}</td>
-                            <td>{% if item.status==0%}<span class="label label-warning">进行中</span>{% elif item.status==1%}<span class="label label-success">已完成</span>{%endif%}</td>
+                            <td>{% if item.status==0%}<span class="label label-warning">进行中</span>{% elif item.status==1%}<span class="label label-success">已确认</span>{%endif%}</td>
                             <td>{{item.user.username}}</td>
                             <td>{{item.addtime}}</td>
                             <td>{% if item.donetime %}{{item.donetime}}{%else%}--{%endif%}</td>
                             <td>
                                 {% if not item.donetime%}
-                                <a class="btn btn-primary btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.donebillflow',id=item.id)}}" >完成</a>
+                                <a class="btn btn-primary btn-xs donebillflow"  data-toggle="modal" data-target="#cfmModel" rel="{{url_for('admin.donebillflow',id=item.id)}}" >确认到账</a>
 
-                                <a class="btn btn-danger btn-xs delbank"  data-toggle="modal" data-target="#delcfmModel" rel="{{url_for('admin.delbillflow',id=item.id)}}">删除</a>
+                                <a class="btn btn-danger btn-xs delbillflow"  data-toggle="modal" data-target="#cfmModel" rel="{{url_for('admin.delbillflow',id=item.id)}}">删除</a>
                                 {%else%}
                                 --
                                 {%endif%}
@@ -73,9 +73,17 @@
 
 
     $(document).ready(function () {
-        $(".delbank").click(function () {
+        $(".delbillflow").click(function () {
             var url=$(this).attr("rel");
-            $("#delcfmModel .modal-footer > a").attr("href",url);
+            $("#cfmModel .modal-footer > a").attr("href",url);
+        });
+         $(".donebillflow").click(function () {
+            var url=$(this).attr("rel");
+            $("#cfmModel .modal-footer > a").attr("href",url);
+        })
+         $(".donebillflow").click(function () {
+            var url=$(this).attr("rel");
+            $("#cfmModel .modal-body > p").text("您确认要进行此操作吗？");
         })
     })
 
