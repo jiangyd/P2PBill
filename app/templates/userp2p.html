@@ -2,6 +2,7 @@
 {% import "page.html" as pg %}
 {%block content %}
 {% include "menu.html" %}
+{% include "confirm.html" %}
 <div class="container-fluid">
     <div class="row">
         {% include "menu.html" %}
@@ -67,6 +68,23 @@
 
     </div>
 </div>
+
+<script>
+    $("#modifyuserp2p").on("hidden.bs.modal", function() {
+    $(this).removeData("bs.modal");
+});
+        $("#p2p").on("hidden.bs.modal", function() {
+    $(this).removeData();
+});
+
+    $(document).ready(function () {
+        $(".delbank").click(function () {
+            var url=$(this).attr("rel");
+            $("#delcfmModel .modal-footer > a").attr("href",url);
+        })
+    })
+
+</script>
 {% endblock %}
 
 

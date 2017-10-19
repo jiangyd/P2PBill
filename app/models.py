@@ -48,6 +48,16 @@ class User(db.Model):
         return check_password_hash(self.password,pwd)
     def set_pwd(self,pwd):
         self.password=generate_password_hash(pwd)
+    def to_json(self):
+        json_user={
+            "id":self.id,
+            "username":self.username,
+            "nickname":self.nickname,
+            "email":self.email,
+            "phone":self.phone,
+            "face":self.face,
+        }
+        return json_user
 
 
 #投资记录表

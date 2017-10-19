@@ -1,6 +1,6 @@
 from . import admin
 
-from flask import render_template, redirect, url_for, session, request
+from flask import render_template, redirect, url_for, session, request,jsonify
 from .forms import LoginForm, UserForm, BankCardForm
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow
 from functools import wraps
@@ -354,6 +354,13 @@ def user():
         db.session.commit()
     return render_template("user.html", userpage=True, form=form, user=user)
 
+#供ajax调用局部更新页面
+@admin.route("/userinfo", methods=["GET"])
+@admin_login_req
+def userinfo():
+    id=session.get("userid")
+    user=User.query.filter_by(id=int(id)).first()
+    return jsonify(user.to_json())
 
 # 登录日志
 @admin.route("/loginlog/<int:page>", methods=["GET"])
