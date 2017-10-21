@@ -16,8 +16,11 @@
             url: '/admin/userinfo',
             success: function (data) {
                 $("#username").text(data.nickname)
-                $("#username").attr("href","{{url_for('admin.user')}}")
-                $("#img").attr("src","{{url_for('admin.user')}}")
+                $("#username").attr("href", "{{url_for('admin.user')}}")
+                if (data.face != null) {
+                    $("#img").attr("src", "{{url_for('static',filename='uploads/')}}" + data.face);
+                }
+
             }
         })
     })
@@ -29,13 +32,25 @@
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
-
-<img src="{{url_for('static',filename='uploads/face.jpg')}}"  class="img-circle" style="width: 49px;height: 49px" id="img">
+                <li>
+                    <img src="{{url_for('static',filename='uploads/face.jpg')}}" class="img-circle"
+                         style="width: 49px;height: 49px" id="img">
                 </li>
 
                 <li><a href="" id="username"></a></li>
-                <li><a data-toggle="modal" href="#" data-target="#modifypwd">修改密码</a></li>
-                <li><a href="{{url_for('admin.logout')}}">退出</a></li>
+                <li role="presentation" class="dropdown">
+                    <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
+                       aria-expanded="false">
+                        安全设置
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a data-toggle="modal" href="#" data-target="#modifypwd">MFA</a></li>
+                        <li><a data-toggle="modal" href="#" data-target="#modifypwd">修改密码</a></li>
+                        <li><a href="{{url_for('admin.logout')}}">退出</a></li>
+                    </ul>
+
+
             </ul>
         </div>
     </div>

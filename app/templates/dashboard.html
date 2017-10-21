@@ -2,4 +2,147 @@
 
 {%block content %}
 {% include "menu.html" %}
+<script src="{{url_for('static',filename='js/chart/Chart.min.js')}}"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.ajax({
+            url: '/admin/overview',
+            success: function (data) {
+                $("#investment_money").text(data.investment_money)
+                $("#expiring_invest").text(data.expiring_invest)
+                $("#investment_max_profit").text(data.investment_max_profit)
+                $("#count_p2p").text(data.count_p2p)
+                $("#expire_invest").text(data.expire_invest)
+                $("#investment_lucre").text(data.investment_lucre)
+                $("#out_money").text(data.out_money)
+                $("#in_money").text(data.in_money)
+                $("#last_login_ip").text(data.last_login_ip)
+                $("#last_login_time").text(data.last_login_time)
+            }
+        })
+    })
+</script>
+<style>
+    span {
+        font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="margin-top: 60px">
+            <div class="panel panel-default">
+                <div class="panel-heading">概览信息</div>
+                <div class="panel-body">
+                    <div class=" col-md-3  main">
+                        <ul class="list-unstyled">
+                            <li style="margin-top: 5px">
+                                <span class="label label-info">投资中金额</span>
+                                <span id="investment_money"></span>
+                            </li>
+                            <li style="margin-top: 5px">
+                                <span class="label label-info">待收益</span>
+                                <span id="investment_lucre"></span>
+                            </li>
+                            <li style="margin-top: 5px">
+                                <span class="label label-info">充值总金额</span>
+                                <span id="in_money"></span>
+                            </li>
+                            <li style="margin-top: 5px">
+                                <span class="label label-info">提现总金额</span>
+                                <span id="out_money"></span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class=" col-md-3 main">
+                        <ul class="list-unstyled">
+                            <li style="margin-top: 5px">
+                                <span class="label label-warning">7天内到期投资</span>
+                                <span id="expiring_invest"></span>
+                            </li>
+                            <li style="margin-top: 5px">
+                                <span class="label label-danger">已到期待确认</span>
+                                <span id="expire_invest"></span>
+                            </li>
+                            <li style="margin-top: 5px">
+                                <span class="label label-info">投资中平台数</span>
+                                <span id="count_p2p"></span>
+                            </li>
+                            <li style="margin-top: 5px">
+
+                                <span class="label label-info">投资中年化率最高</span>
+                                <span id="investment_max_profit"></span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class=" col-md-3 main">
+                        <ul class="list-unstyled">
+                            <li style="margin-top: 5px">
+                                <span class="label label-info">最近登录ip</span>
+                                <span id="last_login_ip"></span>
+                            </li>
+                            <li style="margin-top: 5px">
+                                <span class="label label-info">最近登录时间</span>
+                                <span id="last_login_time"></span>
+                            </li>
+                        </ul>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 col-sm-offset-3 col-md-5 col-md-offset-2 main" style="margin-top: 60px">
+            <canvas id="chart-pie"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    var radom_color = function () {
+        return '#' + ('00000' + (Math.random() * 0x1000000 << 0).toString(16)).slice(-6);
+    }
+    $(document).ready(function () {
+        $.getJSON("/admin/investpercentage", function (data) {
+                var chart_data = new Array();
+                var color_data=new Array();
+                var label_data = new Array();
+                $.each(data, function (i, field) {
+                    $.each(field, function (x, y) {
+//                        var obj = {}
+//                        obj.value = y["sum_money"];
+//                        obj.color = radom_color();
+//                        label.push(y["p2p_name"])
+                        chart_data.push(y["sum_money"]);
+                        color_data.push(radom_color());
+                        label_data.push( y["p2p_name"]);
+
+                    });
+                });
+
+    var config = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: chart_data,
+                backgroundColor:color_data,
+                label: '投资中金额占比图'
+            }],
+            labels: label_data
+        },
+        options: {
+            responsive: true
+        }
+    };
+
+
+                var ctx = document.getElementById("chart-pie").getContext("2d");
+                var myChart = new Chart(ctx,config);
+
+            }
+        )
+    })
+</script>
+
 {% endblock %}

@@ -36,8 +36,9 @@
             {{form.password(class="form-control",placeholder="密码")}}
         </div>
         {{ form.csrf_token }}
+        <a href="{{url_for('admin.register')}}">去注册</a>
      <button class="btn btn-default">登录</button>
-        <a href="" class="btn btn-default">注册</a>
+
     </form>
 
 

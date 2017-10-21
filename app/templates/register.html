@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>P2P投资记账平台</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+</head>
+<body>
+<style>
+    .container {
+        width: 600px;
+        height: 250px;
+        margin-top: 100px;
+        text-align: right;
+    }
+
+    .container h3 {
+        text-align: center;
+    }
+
+    .error {
+        background: #f0d6d6;
+        padding: 0.3em;
+        text-align: center;
+    }
+
+</style>
+
+<div class="container">
+    <h3>注册</h3>
+
+
+    <form class="form-horizontal" action="{{url_for('admin.register')}}" method="post">
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">{{form.username.label}}</label>
+            <div class="col-sm-6">
+                {{form.username(class="form-control",placeholder="请输入用户名")}}
+            </div>
+            <div class="col-sm-3">
+                {% for err in form.username.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">{{form.password.label}}</label>
+            <div class="col-sm-6">
+                {{form.password(class="form-control",placeholder="请输入密码")}}
+            </div>
+            <div class="col-sm-3">
+                {% for err in form.password.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+            </div>
+
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">{{form.nickname.label}}</label>
+            <div class="col-sm-6">
+                {{form.nickname(class="form-control",placeholder="请输入昵称")}}
+            </div>
+            <div class="col-sm-3">
+                {% for err in form.nickname.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">{{form.email.label}}</label>
+            <div class="col-sm-6">
+                {{form.email(class="form-control",placeholder="请输入邮箱",type="email")}}
+            </div>
+            <div class="col-sm-3">
+                {% for err in form.email.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">{{form.phone.label}}</label>
+            <div class="col-sm-6">
+                {{form.phone(class="form-control",placeholder="请输入手机号码")}}
+            </div>
+            <div class="col-sm-3">
+                {% for err in form.phone.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">{{form.verify_code.label}}</label>
+            <div class="col-sm-6">
+                {{form.verify_code(class="form-control",placeholder="请输入邮箱验证码")}}
+            </div>
+            <div class="col-sm-3">
+                {% for err in form.verify_code.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+            </div>
+        </div>
+        {{ form.csrf_token }}
+        <div class="form-group">
+            <div class="col-sm-6">
+            <a href="{{url_for('admin.login')}}">已有帐号</a>
+            <button type="submit" class="btn btn-default">注册</button>
+            </div>
+        </div>
+    </form>
+
+
+</div>
+</body>
+</html>

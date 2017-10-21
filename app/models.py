@@ -32,6 +32,13 @@ class P2P(db.Model):
 #用户信息表
 class User(db.Model):
     __tablename__="user"
+    def __init__(self,username,password,nickname,email,phone):
+        self.username=username
+        self.password=self.set_pwd(password)
+        self.nickname=nickname
+        self.email=email
+        self.phone=phone
+
     id=db.Column(db.Integer,primary_key=True)
     username=db.Column(db.String(16),unique=True) #登录用户名
     password=db.Column(db.String(100)) #密码
