@@ -1,0 +1,110 @@
+<script src="{{url_for('static',filename='js/jquery.qrcode.min.js')}}"></script>
+<script type="text/javascript">
+
+
+     function utf16to8(str) {
+                var out, i, len, c;
+                out = "";
+                len = str.length;
+                for(i = 0; i < len; i++) {
+                c = str.charCodeAt(i);
+                if ((c >= 0x0001) && (c <= 0x007F)) {
+                    out += str.charAt(i);
+                } else if (c > 0x07FF) {
+                    out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                    out += String.fromCharCode(0x80 | ((c >>  6) & 0x3F));
+                    out += String.fromCharCode(0x80 | ((c >>  0) & 0x3F));
+                } else {
+                    out += String.fromCharCode(0xC0 | ((c >>  6) & 0x1F));
+                    out += String.fromCharCode(0x80 | ((c >>  0) & 0x3F));
+                }
+                }
+                return out;
+            }
+
+
+
+    var username=$("#username").text();
+    var secret=$("#secret").text();
+    var text="otpauth://totp/" + "P2PBill" + ":" + utf16to8(username) + "?secret=" + secret+"&issuer"+utf16to8("P2P投资记账系统")
+    $('#qrcode').qrcode({width: 120, height: 120, text: text});
+
+</script>
+<div class="modal-header ">
+    <button type="button" class="close" data-dismiss="modal"
+            aria-hidden="true">×
+    </button>
+    <h4 class="modal-title" id="myModalLabel">MFA设置</h4>
+</div>
+<div class="modal-body">
+    <ul id="mytab" class="nav nav-tabs">
+        <li class="active">
+            <a href="#auto_scan" data-toggle="tab">扫码绑定</a>
+        </li>
+        <li>
+            <a href="#manual" data-toggle="tab">手动绑定</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="mytablecontent" style="margin-top: 15px">
+        <div role="tabpanel" class="tab-pane fade in active" id="auto_scan" >
+            <form class="form-horizontal" action="{{url_for('admin.setmfa')}}" method="post">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">请使用身份宝扫一扫</label>
+                    <div class="col-sm-8">
+                        <div id="qrcode" value="{{secret}}"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">第一组CODE</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" name="onecode" placeholder="请输入第一组code"
+                               minlength="6" maxlength="6">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">第二组CODE</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" name="twocode" placeholder="请输入第二组code"
+                               minlength="6" maxlength="6">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-left: 85%">确认绑定</button>
+
+            </form>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="manual">
+            <form class="form-horizontal" action="{{url_for('admin.setmfa')}}" method="post">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">用户名</label>
+                    <div class="col-sm-8">
+                        <p class="form-control-static" id="username">{{nickname}}</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">密钥</label>
+                    <div class="col-sm-8">
+                        <p class="form-control-static" id="secret">{{secret}}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">第一组CODE</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" name="onecode" placeholder="请输入第一组code"
+                               minlength="6" maxlength="6">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">第二组CODE</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" name="twocode" placeholder="请输入第二组code"
+                               minlength="6" maxlength="6">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-left: 85%">确认绑定</button>
+
+            </form>
+        </div>
+    </div>
+
+</div>

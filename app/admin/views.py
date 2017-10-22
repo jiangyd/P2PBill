@@ -9,6 +9,9 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from sqlalchemy.sql import func
 import json
+from .util import get_secret
+import onetimepass as totp
+import time
 
 import uuid
 import os
@@ -17,7 +20,9 @@ import os
 def admin_login_req(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get("login", None):
+        print(session.get("username", None))
+        print(session.get("userid", None))
+        if not session.get("username", None) or not session.get("userid",None):
             return redirect(url_for("admin.login"))
         return f(*args, **kwargs)
 
@@ -34,7 +39,9 @@ def login():
             if not user or not user.check_pwd(form.data["password"]):
                 error = "用户名或密码错误"
                 return render_template("login.html", form=form, error=error)
-            session["login"] = form.data["username"]
+            session["username"] = form.data["username"]
+            if user.mfa_status:
+                return render_template("verify_code.html")
             session["userid"] = user.id
             log = Loginlog(user.id, request.remote_addr)
             db.session.add(log)
@@ -47,7 +54,7 @@ def login():
 @admin_login_req
 def logout():
     session.pop("userid")
-    session.pop("login")
+    session.pop("username")
     return redirect(url_for("admin.login"))
 
 
@@ -375,7 +382,7 @@ def delbank():
 @admin_login_req
 def user():
     form = UserForm()
-    user = User.query.filter_by(username=session.get("login")).first()
+    user = User.query.filter_by(username=session.get("username")).first()
     if request.method == "GET":
         form.username.data = user.username
         form.nickname.data = user.nickname
@@ -498,4 +505,55 @@ def investpercentage():
         data.append(item)
     overview["percentage"] =data
     return jsonify(overview)
+
+
+@admin.route("/setmfa",methods=["GET","POST"])
+@admin_login_req
+def setmfa():
+    user = User.query.filter_by(username=session.get("username")).first()
+    if request.method=="GET":
+        if not user.mfa_status:
+            user.secret=get_secret()
+            db.session.add(user)
+            db.session.commit()
+            return render_template("mfa.html",secret=user.secret,nickname=user.nickname)
+        else:
+            return render_template("closemfa.html")
+    if request.method=="POST":
+        onecode=request.form.get("onecode")
+        twocode=request.form.get("twocode")
+        #判断身份宝验证码是否正确
+        if totp.valid_totp(token=twocode,secret=user.secret) and totp.valid_totp(token=onecode,secret=user.secret,clock=int(time.time())-30):
+            if user.mfa_status==False:
+                print("要开启")
+                user.mfa_status=True
+            else:
+                print("要关闭")
+                user.mfa_status=False
+            db.session.add(user)
+            db.session.commit()
+            return redirect(request.referrer)
+        else:
+            print(onecode,twocode)
+            return redirect(request.referrer)
+
+@admin.route("/verify_maf_code",methods=["POST"])
+def verify_mfa_code():
+    if request.method=="POST":
+        code=request.form.get("code")
+        user=User.query.filter_by(username=session.get("username")).first()
+        if totp.valid_totp(secret=user.secret,token=code):
+            session["userid"]=user.id
+            log = Loginlog(user.id, request.remote_addr)
+            log.mfa_status=True
+            db.session.add(log)
+            db.session.commit()
+            return redirect(url_for("admin.index"))
+        else:
+            return  render_template("verify_code.html")
+
+
+
+
+
 

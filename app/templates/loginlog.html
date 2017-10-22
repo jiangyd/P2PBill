@@ -15,6 +15,7 @@
                             <th>#</th>
                             <th>用户</th>
                             <th>ip</th>
+                            <th>是否MFA登录</th>
                             <th>时间</th>
                         </tr>
                         </thead>
@@ -24,6 +25,14 @@
                             <td>{{item.id}}</td>
                             <td>{{item.user.username}}</td>
                             <td>{{item.ip}}</td>
+                            <td>
+                                {% if item.mfa_status%}
+                                <span class="label label-success">是</span>
+                            {% else %}
+                                <span class="label label-warning">否</span>
+                            {% endif %}
+                            </td>
+
                             <td>{{item.addtime}}</td>
                         </tr>
                         {% endfor %}

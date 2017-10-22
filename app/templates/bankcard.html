@@ -99,8 +99,8 @@
 
 
 <script>
-    $("#modifybank").on("hidden", function() {
-    $(this).removeData("modal");
+    $("#modifybank").on("hidden.bs.modal", function() {
+    $(this).removeData("bs.modal");
 });
 
     $(document).ready(function () {

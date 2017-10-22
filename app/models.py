@@ -46,6 +46,8 @@ class User(db.Model):
     email=db.Column(db.String(32),unique=True) #邮箱
     phone=db.Column(db.String(11),unique=True) #手机
     face=db.Column(db.String(255)) #头像
+    secret=db.Column(db.String(16)) #MFA密钥
+    mfa_status=db.Column(db.Boolean,default=False) #用户mfa设置默认未开启
     loginlogs=db.relationship("Loginlog",backref="user")
     bankcards=db.relationship("BankCard",backref="user")
     invests = db.relationship("Invest", backref="user")
@@ -149,6 +151,7 @@ class Loginlog(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     user_id=db.Column(db.Integer,db.ForeignKey("user.id"))
     ip=db.Column(db.String(15))
+    mfa_status=db.Column(db.Boolean,default=False) #这个状态要保存，所以不能从用户表读取
     addtime=db.Column(db.DateTime,default=datetime.now)
 
 

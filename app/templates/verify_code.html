@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>验证MFA</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+    <script src="{{url_for('static',filename='js/jquery-3.2.1.min.js')}}"></script>
+    <script src="{{url_for('static',filename='js/bootstrap.min.js')}}"></script>
+</head>
+<body>
+<div class="modal fade " id="mfa" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">×
+                </button>
+                <h4 class="modal-title" id="myModalLabel">验证MFA</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" action="{{url_for('admin.verify_mfa_code')}}" method="post">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">code</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="code" placeholder="请输入code" maxlength="6" minlength="6">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">确认</button>
+            </div>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+   $(document).ready(function () {
+       $("#mfa").modal()
+   });
+   $("#mfa").on("hidden.bs.modal", function() {
+        location.href="/admin/login"
+});
+</script>
+</html>
