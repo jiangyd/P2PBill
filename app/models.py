@@ -154,6 +154,18 @@ class Loginlog(db.Model):
     mfa_status=db.Column(db.Boolean,default=False) #这个状态要保存，所以不能从用户表读取
     addtime=db.Column(db.DateTime,default=datetime.now)
 
+#找回密码
+class ForGetPwd(db.Model):
+    __tablename__="forgetpwd"
+    def __init__(self):
+        pass
+    id=db.Column(db.Integer,primary_key=True)
+    email=db.Column(db.String)
+    token=db.Column(db.String)
+    addtime=db.Column(db.DateTime,default=datetime.now)
+    expiretime=db.Column(db.DateTime)
+
+
 
 if __name__=="__main__":
     # pass

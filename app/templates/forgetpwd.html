@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>找回密码</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+</head>
+<style>
+
+    .container{
+        width: 350px;
+        height: 250px;
+        margin-top: 100px;
+        text-align: right;
+    }
+    .container h3 {
+        text-align: center;
+    }
+
+    .error{
+        background: #f0d6d6; padding: 0.5em;
+        text-align: center;
+    }
+
+</style>
+<body>
+<div class="container">
+    <h3>找回密码</h3>
+    {% if error %}
+    <p class="error"><strong>{{error}}</strong></p>
+    {% endif %}
+    <form action="{{url_for('admin.forgetpwd')}}" method="post">
+        <div class="form-group">
+            <input type="email" class="form-control" name="email" placeholder="请输入邮箱">
+        </div>
+
+
+        <a href="{{url_for('admin.login')}}">去登录</a>
+        <a href="{{url_for('admin.register')}}">去注册</a>
+        <button class="btn btn-default">确认</button>
+    </form>
+</div>
+
+</body>
+</html>
