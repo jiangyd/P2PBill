@@ -18,9 +18,11 @@ class UserForm(FlaskForm):
     phone = StringField(label="手机",validators=[DataRequired("请输入手机")])
     face = FileField(label="头像",validators=[ FileAllowed(['jpg', 'png','jpeg','gif'], 'Images only!')])
 
-class BankCardForm():
+class BankCardForm(FlaskForm):
     name=StringField(label="开户行",validators=[DataRequired("请输入开户行")])
     card=StringField(label="银行卡号",validators=[DataRequired("请输入银行卡号")])
+
+
 
 
 class RegisterForm(FlaskForm):

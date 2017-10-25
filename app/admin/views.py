@@ -553,6 +553,18 @@ def verify_mfa_code():
             return  render_template("verify_code.html")
 
 
+@admin.route("/forgetpwd",methods=["GET","POST"])
+def forgetpwd():
+    error=None
+    if request.method=="GET":
+        return render_template("forgetpwd.html",error=error)
+    if request.method=="POST":
+        email=request.form.get("email")
+        user=User.query.filter_by(email=email).first()
+        if not user:
+            error="邮箱不存在"
+            return render_template("forgetpwd.html",error=error)
+
 
 
 
