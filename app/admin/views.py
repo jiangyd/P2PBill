@@ -1,7 +1,7 @@
 from . import admin
 
 from flask import render_template, redirect, url_for, session, request, jsonify, flash
-from .forms import LoginForm, UserForm, BankCardForm, RegisterForm
+from .forms import LoginForm, UserForm, BankCardForm, RegisterForm,ForgetPwdForm
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow
 from functools import wraps
 from app import db, app
@@ -556,11 +556,14 @@ def verify_mfa_code():
 @admin.route("/forgetpwd",methods=["GET","POST"])
 def forgetpwd():
     error=None
+    form=ForgetPwdForm()
     if request.method=="GET":
-        return render_template("forgetpwd.html",error=error)
+        return render_template("forgetpwd.html",error=error,form=form)
     if request.method=="POST":
-        email=request.form.get("email")
-        user=User.query.filter_by(email=email).first()
+        if form.validate_on_submit():
+            email=request.form.get("email")
+            return "ss"
+        # user=User.query.filter_by(email=email).first()
         if not user:
             error="邮箱不存在"
             return render_template("forgetpwd.html",error=error)

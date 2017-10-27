@@ -160,8 +160,8 @@ class ForGetPwd(db.Model):
     def __init__(self):
         pass
     id=db.Column(db.Integer,primary_key=True)
-    email=db.Column(db.String)
-    token=db.Column(db.String)
+    email=db.Column(db.String(32))
+    token=db.Column(db.String(255))
     addtime=db.Column(db.DateTime,default=datetime.now)
     expiretime=db.Column(db.DateTime)
 

@@ -4,6 +4,7 @@ from flask_wtf.file import FileField,FileRequired,FileAllowed
 from wtforms import StringField,PasswordField
 
 from wtforms.validators import DataRequired,ValidationError,Regexp
+
 from app.models import User
 
 class LoginForm(FlaskForm):
@@ -22,6 +23,9 @@ class BankCardForm(FlaskForm):
     name=StringField(label="开户行",validators=[DataRequired("请输入开户行")])
     card=StringField(label="银行卡号",validators=[DataRequired("请输入银行卡号")])
 
+class ForgetPwdForm(FlaskForm):
+    email=StringField(label="邮箱",validators=[DataRequired("请输入邮箱")])
+    recaptcha=RecaptchaField()
 
 
 
