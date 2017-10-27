@@ -2,19 +2,21 @@ from . import admin
 from .vericode import veri_code
 from io import BytesIO
 from flask import render_template, redirect, url_for, session, request, jsonify, flash,Response
-from .forms import LoginForm, UserForm, BankCardForm, RegisterForm
-from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow
+from .forms import LoginForm, UserForm, BankCardForm, RegisterForm,ForgetPwdForm
+from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow,ForGetPwd
 from functools import wraps
 from app import db, app
+from app.config import htmlbody
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from sqlalchemy.sql import func
 import json
-from .util import get_secret
+from .util import get_secret,SendMailByAli
 import onetimepass as totp
 import time
 import uuid
 import os
+import hashlib
 
 
 def admin_login_req(f):
@@ -525,10 +527,8 @@ def setmfa():
         #判断身份宝验证码是否正确
         if totp.valid_totp(token=twocode,secret=user.secret) and totp.valid_totp(token=onecode,secret=user.secret,clock=int(time.time())-30):
             if user.mfa_status==False:
-                print("要开启")
                 user.mfa_status=True
             else:
-                print("要关闭")
                 user.mfa_status=False
             db.session.add(user)
             db.session.commit()
@@ -562,17 +562,48 @@ def forgetpwd():
     if request.method=="POST":
         if form.validate_on_submit():
             email=request.form.get("email")
-            return "ss"
-        # user=User.query.filter_by(email=email).first()
-        if not user:
-            error="邮箱不存在"
-            return render_template("forgetpwd.html",error=error)
+            user=User.query.filter_by(email=email).first()
+            captcha_code=request.form.get("captcha")
+            if captcha_code.lower()!=session.get("captcha").lower():
+                error = "验证码错误"
+                return render_template("forgetpwd.html", error=error, form=form)
+            if not user:
+                error="邮箱不存在"
+                return render_template("forgetpwd.html",error=error,form=form)
+            else:
+                mail=SendMailByAli()
+                m=hashlib.md5()
+                m.update(str(uuid.uuid4()).encode("utf-8"))
+                token=m.hexdigest()
+                res=mail.send_mail(subject="找回密码",toaddress=email,htmlbody=htmlbody.format(nickname=user.nickname,url=url_for('admin.repwd',token=token)))
+                #如果多次找回密码，验证token的时候需要根据expire获取最新一条
+                now=datetime.now()
+                addtime=now.strftime("%Y-%m-%d %H:%M:%S")
+                expiretime=(now+timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
+                print(addtime,expiretime)
+                forgetpwd=ForGetPwd(email=email,token=token,addtime=addtime,expiretime=expiretime)
+                db.session.add(forgetpwd)
+                db.session.commit()
+                s=ForGetPwd.query.all().order_by(ForGetPwd.expiretime.desc()).first()
+                print(s)
+                return jsonify(dict(res))
+
+@admin.route("/repwd",methods=["GET","POST"])
+def repwd():
+    if request.method=="GET":
+        token=request.args.get("token")
+        return render_template("repwd.html",token=token)
+    if request.method=="POST":
+        email=request.form.get("email")
+        token=request.form.get("token")
+
 @admin.route("/captcha")
 def captcha():
     f = BytesIO()
     code,image = veri_code()
     image.save(f,'jpeg')
-    session['vericode'] = code
+    session['captcha'] = code
+    print(code)
     res=Response(f.getvalue(),mimetype="image/jpeg")
     return res
 

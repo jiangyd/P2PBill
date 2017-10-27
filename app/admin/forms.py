@@ -25,7 +25,6 @@ class BankCardForm(FlaskForm):
 
 class ForgetPwdForm(FlaskForm):
     email=StringField(label="邮箱",validators=[DataRequired("请输入邮箱")])
-    recaptcha=RecaptchaField()
 
 
 

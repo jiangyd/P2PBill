@@ -40,7 +40,7 @@
         <div class="form-group">
             <ul class="list-unstyled list-inline">
                 <li><input type="text" class="form-control" name="captcha" placeholder="请输入验证码" style="width: 140px"></li>
-                <li><img src="{{url_for('admin.captcha')}}" onclick='recaptcha()' id="captcha"></img></li>
+                <li><img src="{{url_for('admin.captcha')}}" onclick='this.src="{{url_for('admin.captcha')}}"+"?t="+Math.random()' id="captcha"></img></li>
             </ul>
 
 
@@ -49,10 +49,10 @@
         <div class="form-group">
             {{form.recaptcha}}
         </div>
-
+{{ form.csrf_token }}
         <a href="{{url_for('admin.login')}}">去登录</a>
         <a href="{{url_for('admin.register')}}">去注册</a>
-        <button class="btn btn-default">确认</button>
+        <button class="btn btn-default" type="submit">确认</button>
     </form>
 </div>
 <script type="text/javascript">

@@ -79,7 +79,7 @@ class SendMailByAli(object):
         params_data["Signature"]=Signature
         url="https://dm.aliyuncs.com/?" +urllib.parse.urlencode(params_data)
         res=requests.get(url,verify=False)
-        return {"code":res.status_code,"msg":res.text}
+        return {"code":res.status_code,"msg":res.json()}
 
 
 

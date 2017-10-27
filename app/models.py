@@ -1,7 +1,7 @@
 # from flask import Flask
 
 # from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime,timedelta
 from werkzeug.security import generate_password_hash,check_password_hash
 from app import db
 #
@@ -157,11 +157,14 @@ class Loginlog(db.Model):
 #找回密码
 class ForGetPwd(db.Model):
     __tablename__="forgetpwd"
-    def __init__(self):
-        pass
+    def __init__(self,email,token,addtime,expiretime):
+        self.email=email
+        self.token=token
+        self.addtime=addtime
+        self.expiretime=expiretime
     id=db.Column(db.Integer,primary_key=True)
     email=db.Column(db.String(32))
-    token=db.Column(db.String(255))
+    token=db.Column(db.String(32))
     addtime=db.Column(db.DateTime,default=datetime.now)
     expiretime=db.Column(db.DateTime)
 
