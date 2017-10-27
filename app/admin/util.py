@@ -9,6 +9,15 @@ import urllib.parse
 from app import app
 
 
+# class B(object):
+#     def __init__(self,a,b):
+#         self.a=a
+#         self.b=b
+#     def c(self,x):
+#         print("aaa")
+#         return x
+# b=B("a","b")
+# b.c("x")
 
 def get_secret():
     data = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz234567', 16))
@@ -37,7 +46,7 @@ class SendMailByAli(object):
     def __nonce(self):
         """获取数据uuid"""
         return str(uuid.uuid4())
-    def params(self,subject,toaddress,htmlbody="",textbody=""):
+    def params(self,subject,toaddress,htmlbody=None,textbody=None):
         utctime=self.__utcnow()
         Nonce=self.__nonce()
         params = {"Action": "SingleSendMail",
@@ -54,25 +63,22 @@ class SendMailByAli(object):
                   "SignatureVersion": "1.0",
                   "SignatureNonce": Nonce,
                   "Version": "2015-11-23", }
-        if htmlbody:
-            print("gg")
+        if htmlbody is not None:
             params["HtmlBody"]=htmlbody
-        if textbody:
-            print("Cc")
+        if textbody is not None:
             params["TextBody"]=textbody
-        print(params)
         sort_params = {}
         for key in sorted(params):
             sort_params[key] = params[key]
         return sort_params
     def send_mail(self,subject,toaddress,htmlbody=None,textbody=None):
-        params_data=self.params(subject,toaddress,htmlbody=None,textbody=None)
+        params_data=self.params(subject=subject,toaddress=toaddress,htmlbody=htmlbody,textbody=textbody)
         data=urllib.parse.urlencode(params_data)
         StringToSign="GET&%2F&" + self.__replace(requests.utils.quote(data,safe=""))
         Signature=self.__encry(self.access_secret,StringToSign)
         params_data["Signature"]=Signature
         url="https://dm.aliyuncs.com/?" +urllib.parse.urlencode(params_data)
-        res=requests.get(url)
+        res=requests.get(url,verify=False)
         return {"code":res.status_code,"msg":res.text}
 
 
@@ -85,7 +91,4 @@ class SendMailByAli(object):
 
 
 
-
-a=SendMailByAli()
-print(a.send_mail("测试","962584902@qq.com",textbody="test"))
 

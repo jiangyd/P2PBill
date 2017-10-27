@@ -1,6 +1,7 @@
 from . import admin
-
-from flask import render_template, redirect, url_for, session, request, jsonify, flash
+from .vericode import veri_code
+from io import BytesIO
+from flask import render_template, redirect, url_for, session, request, jsonify, flash,Response
 from .forms import LoginForm, UserForm, BankCardForm, RegisterForm
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow
 from functools import wraps
@@ -564,7 +565,14 @@ def forgetpwd():
         if not user:
             error="邮箱不存在"
             return render_template("forgetpwd.html",error=error)
-
+@admin.route("/captcha")
+def captcha():
+    f = BytesIO()
+    code,image = veri_code()
+    image.save(f,'jpeg')
+    session['vericode'] = code
+    res=Response(f.getvalue(),mimetype="image/jpeg")
+    return res
 
 
 

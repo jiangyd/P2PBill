@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>找回密码</title>
     <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <script src="{{url_for('static',filename='js/jquery-3.2.1.min.js')}}"></script>
 </head>
 <style>
 
@@ -33,6 +35,14 @@
         <div class="form-group">
             <input type="email" class="form-control" name="email" placeholder="请输入邮箱">
         </div>
+        <div class="form-group">
+            <ul class="list-unstyled list-inline">
+                <li><input type="text" class="form-control" name="captcha" placeholder="请输入验证码" style="width: 140px"></li>
+                <li><img src="{{url_for('admin.captcha')}}" onclick='recaptcha()' id="captcha"></img></li>
+            </ul>
+
+
+        </div>
 
 
         <a href="{{url_for('admin.login')}}">去登录</a>
@@ -40,6 +50,14 @@
         <button class="btn btn-default">确认</button>
     </form>
 </div>
+<script type="text/javascript">
+    function recaptcha() {
+           var imgsrc=$("#captcha").attr("src");
+           alert(imgsrc+"?"+Math.random())
+    $("#captcha").attr("src",imgsrc+"?t="+Math.random());
+    }
+
+</script>
 
 </body>
 </html>
