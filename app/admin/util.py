@@ -6,18 +6,9 @@ import base64
 from datetime import datetime
 import requests
 import urllib.parse
-from app import app
+from app.config import config
 
 
-# class B(object):
-#     def __init__(self,a,b):
-#         self.a=a
-#         self.b=b
-#     def c(self,x):
-#         print("aaa")
-#         return x
-# b=B("a","b")
-# b.c("x")
 
 def get_secret():
     data = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz234567', 16))
@@ -27,9 +18,8 @@ def get_secret():
 
 class SendMailByAli(object):
     def __init__(self):
-        self.access_keyid=app.config["access_keyid"]
-        self.access_secret=app.config["access_secret"]
-
+        self.access_keyid=config["aliyun"]["access_keyid"]
+        self.access_secret=config["aliyun"]["access_secret"]
     def __replace(self,str):
         data = str.replace("+", "%20")
         data = data.replace("*", "%2A")
@@ -69,15 +59,15 @@ class SendMailByAli(object):
             params["TextBody"]=textbody
         sort_params = {}
         for key in sorted(params):
-            sort_params[key] = params[key]
+            sort_params[key] = params[key].replace('\n','').strip()
         return sort_params
     def send_mail(self,subject,toaddress,htmlbody=None,textbody=None):
         params_data=self.params(subject=subject,toaddress=toaddress,htmlbody=htmlbody,textbody=textbody)
-        data=urllib.parse.urlencode(params_data)
+        data=self.__replace(urllib.parse.urlencode(params_data))
         StringToSign="GET&%2F&" + self.__replace(requests.utils.quote(data,safe=""))
         Signature=self.__encry(self.access_secret,StringToSign)
         params_data["Signature"]=Signature
-        url="https://dm.aliyuncs.com/?" +urllib.parse.urlencode(params_data)
+        url="https://dm.aliyuncs.com/?" +self.__replace(urllib.parse.urlencode(params_data))
         res=requests.get(url,verify=False)
         return {"code":res.status_code,"msg":res.json()}
 

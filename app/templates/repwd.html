@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>重设密码</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+</head>
+<style>
+
+    .container {
+        width: 300px;
+        margin-top: 100px;
+        text-align: right;
+    }
+
+    .container h3 {
+        text-align: center;
+    }
+
+    .error {
+        background: #f0d6d6;
+        padding: 0.5em;
+        text-align: center;
+    }
+
+</style>
+<body>
+<div class="container">
+    <h3>重设密码</h3>
+    {% if error %}
+    <p class="error"><strong>{{error}}</strong></p>
+    {% endif %}
+    <form class="form-horizontal" action="{{url_for('admin.repwd')}}" method="post" >
+        <div class="form-group">
+                {{form.password(placeholder="请输入新密码",class="form-control")}}
+                {% for err in form.password.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+
+        </div>
+
+        <div class="form-group">
+                {{form.repassword(placeholder="请确认新密码",class="form-control")}}
+                {% for err in form.repassword.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+
+        </div>
+        {{ form.csrf_token }}
+        <input type="hidden" name="token" value="{{token}}">
+        <div class="form-group">
+            <div class="col-sm-6">
+            <button class="btn btn-default" type="submit">确认</button>
+                </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

@@ -1,17 +1,17 @@
 from . import admin
 from .vericode import veri_code
 from io import BytesIO
-from flask import render_template, redirect, url_for, session, request, jsonify, flash,Response
-from .forms import LoginForm, UserForm, BankCardForm, RegisterForm,ForgetPwdForm
-from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow,ForGetPwd
+from flask import render_template, redirect, url_for, session, request, jsonify, flash, Response
+from .forms import LoginForm, UserForm, BankCardForm, RegisterForm, ForgetPwdForm,RePwdForm
+from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow, ForGetPwd
 from functools import wraps
 from app import db, app
-from app.config import htmlbody
+from app.config import htmlbody, config
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from sqlalchemy.sql import func
 import json
-from .util import get_secret,SendMailByAli
+from .util import get_secret, SendMailByAli
 import onetimepass as totp
 import time
 import uuid
@@ -24,7 +24,7 @@ def admin_login_req(f):
     def decorated_function(*args, **kwargs):
         print(session.get("username", None))
         print(session.get("userid", None))
-        if not session.get("username", None) or not session.get("userid",None):
+        if not session.get("username", None) or not session.get("userid", None):
             return redirect(url_for("admin.login"))
         return f(*args, **kwargs)
 
@@ -463,8 +463,8 @@ def overview():
         count_expire = db.session.query(func.count(Invest.id).label("expiring_invest")).filter(Invest.user_id == userid,
                                                                                                Invest.status == 0,
                                                                                                Invest.end_time >= (
-                                                                                               datetime.now() - timedelta(
-                                                                                                   days=7))).first()
+                                                                                                   datetime.now() - timedelta(
+                                                                                                       days=7))).first()
         # 投资已到期，需要确认
         expire_invest = db.session.query(func.count(Invest.id).label("expire_invest")).filter(Invest.user_id == userid,
                                                                                               Invest.status == 1,
@@ -486,7 +486,7 @@ def overview():
         overview["investment_max_profit"] = float(investinfo.investment_max_profit)
         overview["investment_lucre"] = float(investinfo.investment_lucre)
         overview["count_p2p"] = int(investinfo.count_p2p)
-        overview["expiring_invest"] =int(count_expire.expiring_invest)
+        overview["expiring_invest"] = int(count_expire.expiring_invest)
         overview["expire_invest"] = int(expire_invest.expire_invest)
         return jsonify(overview)
 
@@ -494,119 +494,139 @@ def overview():
 @admin.route("/investpercentage")
 @admin_login_req
 def investpercentage():
-    overview={}
-    data=[]
+    overview = {}
+    data = []
 
-    items=db.session.query(func.sum(Invest.money), Invest.p2p_id, P2P.name).filter(Invest.p2p_id == P2P.id,Invest.status==0).group_by(
-            Invest.p2p_id).all()
+    items = db.session.query(func.sum(Invest.money), Invest.p2p_id, P2P.name).filter(Invest.p2p_id == P2P.id,
+                                                                                     Invest.status == 0).group_by(
+        Invest.p2p_id).all()
     for i in items:
-        item={}
-        item["sum_money"]=float(i[0])
-        item["p2p_id"]=int(i[1])
-        item["p2p_name"]=str(i[2])
+        item = {}
+        item["sum_money"] = float(i[0])
+        item["p2p_id"] = int(i[1])
+        item["p2p_name"] = str(i[2])
         data.append(item)
-    overview["percentage"] =data
+    overview["percentage"] = data
     return jsonify(overview)
 
 
-@admin.route("/setmfa",methods=["GET","POST"])
+@admin.route("/setmfa", methods=["GET", "POST"])
 @admin_login_req
 def setmfa():
     user = User.query.filter_by(username=session.get("username")).first()
-    if request.method=="GET":
+    if request.method == "GET":
         if not user.mfa_status:
-            user.secret=get_secret()
+            user.secret = get_secret()
             db.session.add(user)
             db.session.commit()
-            return render_template("mfa.html",secret=user.secret,nickname=user.nickname)
+            return render_template("mfa.html", secret=user.secret, nickname=user.nickname)
         else:
             return render_template("closemfa.html")
-    if request.method=="POST":
-        onecode=request.form.get("onecode")
-        twocode=request.form.get("twocode")
-        #判断身份宝验证码是否正确
-        if totp.valid_totp(token=twocode,secret=user.secret) and totp.valid_totp(token=onecode,secret=user.secret,clock=int(time.time())-30):
-            if user.mfa_status==False:
-                user.mfa_status=True
+    if request.method == "POST":
+        onecode = request.form.get("onecode")
+        twocode = request.form.get("twocode")
+        # 判断身份宝验证码是否正确
+        if totp.valid_totp(token=twocode, secret=user.secret) and totp.valid_totp(token=onecode, secret=user.secret,
+                                                                                  clock=int(time.time()) - 30):
+            if user.mfa_status == False:
+                user.mfa_status = True
             else:
-                user.mfa_status=False
+                user.mfa_status = False
             db.session.add(user)
             db.session.commit()
             return redirect(request.referrer)
         else:
-            print(onecode,twocode)
+            print(onecode, twocode)
             return redirect(request.referrer)
 
-@admin.route("/verify_maf_code",methods=["POST"])
+
+@admin.route("/verify_maf_code", methods=["POST"])
 def verify_mfa_code():
-    if request.method=="POST":
-        code=request.form.get("code")
-        user=User.query.filter_by(username=session.get("username")).first()
-        if totp.valid_totp(secret=user.secret,token=code):
-            session["userid"]=user.id
+    if request.method == "POST":
+        code = request.form.get("code")
+        user = User.query.filter_by(username=session.get("username")).first()
+        if totp.valid_totp(secret=user.secret, token=code):
+            session["userid"] = user.id
             log = Loginlog(user.id, request.remote_addr)
-            log.mfa_status=True
+            log.mfa_status = True
             db.session.add(log)
             db.session.commit()
             return redirect(url_for("admin.index"))
         else:
-            return  render_template("verify_code.html")
+            return render_template("verify_code.html")
 
 
-@admin.route("/forgetpwd",methods=["GET","POST"])
+@admin.route("/forgetpwd", methods=["GET", "POST"])
 def forgetpwd():
-    error=None
-    form=ForgetPwdForm()
-    if request.method=="GET":
-        return render_template("forgetpwd.html",error=error,form=form)
-    if request.method=="POST":
+    error = None
+    form = ForgetPwdForm()
+    if request.method == "GET":
+        return render_template("forgetpwd.html", error=error, form=form)
+    if request.method == "POST":
         if form.validate_on_submit():
-            email=request.form.get("email")
-            user=User.query.filter_by(email=email).first()
-            captcha_code=request.form.get("captcha")
-            if captcha_code.lower()!=session.get("captcha").lower():
+            email = request.form.get("email")
+            user = User.query.filter_by(email=email).first()
+            captcha_code = request.form.get("captcha")
+            if captcha_code.lower() != session.get("captcha").lower():
                 error = "验证码错误"
                 return render_template("forgetpwd.html", error=error, form=form)
             if not user:
-                error="邮箱不存在"
-                return render_template("forgetpwd.html",error=error,form=form)
+                error = "邮箱不存在"
+                return render_template("forgetpwd.html", error=error, form=form)
             else:
-                mail=SendMailByAli()
-                m=hashlib.md5()
+                mail = SendMailByAli()
+                m = hashlib.md5()
                 m.update(str(uuid.uuid4()).encode("utf-8"))
-                token=m.hexdigest()
-                res=mail.send_mail(subject="找回密码",toaddress=email,htmlbody=htmlbody.format(nickname=user.nickname,url=url_for('admin.repwd',token=token)))
-                #如果多次找回密码，验证token的时候需要根据expire获取最新一条
-                now=datetime.now()
-                addtime=now.strftime("%Y-%m-%d %H:%M:%S")
-                expiretime=(now+timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
-                print(addtime,expiretime)
-                forgetpwd=ForGetPwd(email=email,token=token,addtime=addtime,expiretime=expiretime)
+                token = m.hexdigest()
+                content = htmlbody.format(nickname=user.nickname, url="http://" + config["host"]["ip"] +
+                                                                      ":" + config["host"]["port"]
+                                                                      + url_for('admin.repwd', token=token))
+                res = mail.send_mail(subject="找回密码", toaddress=email, htmlbody=content)
+                # 如果多次找回密码，验证token的时候需要根据expire获取最新一条
+                now = datetime.now()
+                addtime = now.strftime("%Y-%m-%d %H:%M:%S")
+                expiretime = (now + timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
+                forgetpwd = ForGetPwd(email=email, token=token, addtime=addtime, expiretime=expiretime)
                 db.session.add(forgetpwd)
                 db.session.commit()
-                s=ForGetPwd.query.all().order_by(ForGetPwd.expiretime.desc()).first()
-                print(s)
+                s = ForGetPwd.query.filter_by().order_by(ForGetPwd.expiretime.desc()).first()
                 return jsonify(dict(res))
 
-@admin.route("/repwd",methods=["GET","POST"])
+
+@admin.route("/repwd", methods=["GET", "POST"])
 def repwd():
-    if request.method=="GET":
-        token=request.args.get("token")
-        return render_template("repwd.html",token=token)
-    if request.method=="POST":
-        email=request.form.get("email")
-        token=request.form.get("token")
+    error=None
+    form=RePwdForm()
+    token=None
+    if request.method == "GET":
+        token = request.args.get("token")
+    if request.method == "POST":
+        token = request.form.get("token")
+        if form.validate_on_submit():
+            forgetpwd=ForGetPwd.query.filter_by(token=token).first()
+            password=request.form.get("password")
+            if forgetpwd:
+                if datetime.now()>datetime.strptime(str(forgetpwd.expiretime),"%Y-%m-%d %H:%M:%S") or forgetpwd.use:
+                    error="令牌已过期"
+                else:
+                    user=User.query.filter_by(email=forgetpwd.email).first()
+                    user.set_pwd(password)
+                    forgetpwd.use=True
+                    db.session.add(forgetpwd)
+                    db.session.add(user)
+                    db.session.commit()
+                    return redirect(url_for('admin.login'))
+            else:
+                error="令牌无效"
+    return render_template("repwd.html", token=token, form=form,error=error)
+
 
 @admin.route("/captcha")
 def captcha():
     f = BytesIO()
-    code,image = veri_code()
-    image.save(f,'jpeg')
+    code, image = veri_code()
+    image.save(f, 'jpeg')
     session['captcha'] = code
     print(code)
-    res=Response(f.getvalue(),mimetype="image/jpeg")
+    res = Response(f.getvalue(), mimetype="image/jpeg")
     return res
-
-
-
-

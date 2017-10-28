@@ -3,13 +3,18 @@ from flask_wtf.file import FileField,FileRequired,FileAllowed
 
 from wtforms import StringField,PasswordField
 
-from wtforms.validators import DataRequired,ValidationError,Regexp
+from wtforms.validators import DataRequired,ValidationError,Regexp,EqualTo
 
 from app.models import User
 
 class LoginForm(FlaskForm):
     username=StringField(validators=[DataRequired("请输入用户名")])
     password=PasswordField(validators=[DataRequired("请输入密码")])
+class RePwdForm(FlaskForm):
+    password=PasswordField(validators=[DataRequired("请输入密码")])
+    repassword = PasswordField(validators=[DataRequired("请输入密码"),EqualTo('password',"两次密码输入不一致")])
+
+
 
 
 class UserForm(FlaskForm):

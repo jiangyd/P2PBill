@@ -156,6 +156,10 @@ class Loginlog(db.Model):
 
 #找回密码
 class ForGetPwd(db.Model):
+    """
+    用户可能存在多次找回密码操作，应该需要获取第一条数据验证
+    用户可能通过一次找回密码链接，多次进行修改密码，应在第一次找回密码通过后，设置为已使用
+    """
     __tablename__="forgetpwd"
     def __init__(self,email,token,addtime,expiretime):
         self.email=email
@@ -167,6 +171,8 @@ class ForGetPwd(db.Model):
     token=db.Column(db.String(32))
     addtime=db.Column(db.DateTime,default=datetime.now)
     expiretime=db.Column(db.DateTime)
+    use=db.Column(db.Boolean,default=False)
+
 
 
 
