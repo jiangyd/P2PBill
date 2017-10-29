@@ -1,11 +1,14 @@
 from flask_wtf import FlaskForm,csrf,RecaptchaField
 from flask_wtf.file import FileField,FileRequired,FileAllowed
 
+from .cus_validation import CaptchaError
 from wtforms import StringField,PasswordField
 
 from wtforms.validators import DataRequired,ValidationError,Regexp,EqualTo
 
 from app.models import User
+
+
 
 class LoginForm(FlaskForm):
     username=StringField(validators=[DataRequired("请输入用户名")])
@@ -39,7 +42,7 @@ class RegisterForm(FlaskForm):
     password=PasswordField(label="密码",validators=[DataRequired("请输入密码")])
     email = StringField(label="邮箱", validators=[DataRequired("请输入邮箱")])
     phone = StringField(label="手机", validators=[DataRequired("请输入手机"),Regexp("1[34578]\\d{9}",message="手机号格式错误")])
-    verify_code=StringField(label="验证码",validators=[DataRequired("请输入验证码")])
+    verify_code=StringField(label="验证码",validators=[DataRequired("请输入验证码"),CaptchaError("验证码错误")])
     def validate_username(self,field):
         username=field.data
         user=User.query.filter_by(username=username).first()
