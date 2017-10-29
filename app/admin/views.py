@@ -22,8 +22,6 @@ import hashlib
 def admin_login_req(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        print(session.get("username", None))
-        print(session.get("userid", None))
         if not session.get("username", None) or not session.get("userid", None):
             return redirect(url_for("admin.login"))
         return f(*args, **kwargs)
@@ -542,6 +540,7 @@ def setmfa():
 
 @admin.route("/verify_maf_code", methods=["POST"])
 def verify_mfa_code():
+    error=None
     if request.method == "POST":
         code = request.form.get("code")
         user = User.query.filter_by(username=session.get("username")).first()
@@ -553,7 +552,8 @@ def verify_mfa_code():
             db.session.commit()
             return redirect(url_for("admin.index"))
         else:
-            return render_template("verify_code.html")
+            error="动态口令无效"
+            return render_template("verify_code.html",error=error)
 
 
 @admin.route("/forgetpwd", methods=["GET", "POST"])
