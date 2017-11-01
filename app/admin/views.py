@@ -542,7 +542,8 @@ def setmfa():
 def verify_mfa_code():
     error=None
     if request.method == "POST":
-        code = request.form.get("code")
+        #获取json数据
+        code = json.loads(request.get_data())["code"]
         user = User.query.filter_by(username=session.get("username")).first()
         if totp.valid_totp(secret=user.secret, token=code):
             session["userid"] = user.id
@@ -552,16 +553,13 @@ def verify_mfa_code():
             db.session.commit()
             return redirect(url_for("admin.index"))
         else:
-            error="动态口令无效"
-            return render_template("verify_code.html",error=error)
+            return jsonify({"code":1,"msg":"动态口令无效"})
 
 
 @admin.route("/forgetpwd", methods=["GET", "POST"])
 def forgetpwd():
     error = None
     form = ForgetPwdForm()
-    if request.method == "GET":
-        return render_template("forgetpwd.html", error=error, form=form)
     if request.method == "POST":
         if form.validate_on_submit():
             email = request.form.get("email")
@@ -591,6 +589,7 @@ def forgetpwd():
                 db.session.commit()
                 s = ForGetPwd.query.filter_by().order_by(ForGetPwd.expiretime.desc()).first()
                 return jsonify(dict(res))
+    return render_template("forgetpwd.html", error=error, form=form)
 
 
 @admin.route("/repwd", methods=["GET", "POST"])
