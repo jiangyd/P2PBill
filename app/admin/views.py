@@ -5,7 +5,8 @@ from flask import render_template, redirect, url_for, session, request, jsonify,
 from .forms import LoginForm, UserForm, BankCardForm, RegisterForm, ForgetPwdForm,RePwdForm
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow, ForGetPwd
 from functools import wraps
-from app import db, app
+from app import app
+from app.ext import db
 from app.config import htmlbody, config
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta

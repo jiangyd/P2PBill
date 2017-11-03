@@ -3,8 +3,8 @@
 # from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timedelta
 from werkzeug.security import generate_password_hash,check_password_hash
-from app import db
-#
+# from app import db
+from app.ext import db
 # #
 # app=Flask(__name__)
 # #
