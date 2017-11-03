@@ -540,20 +540,22 @@ def setmfa():
 
 @admin.route("/verify_maf_code", methods=["POST"])
 def verify_mfa_code():
-    error=None
     if request.method == "POST":
         #获取json数据
-        code = json.loads(request.get_data())["code"]
+        code = json.loads(request.get_data())["code"].strip()
         user = User.query.filter_by(username=session.get("username")).first()
-        if totp.valid_totp(secret=user.secret, token=code):
-            session["userid"] = user.id
-            log = Loginlog(user.id, request.remote_addr)
-            log.mfa_status = True
-            db.session.add(log)
-            db.session.commit()
-            return redirect(url_for("admin.index"))
+        if len(code)>0:
+            if totp.valid_totp(secret=user.secret, token=code):
+                session["userid"] = user.id
+                log = Loginlog(user.id, request.remote_addr)
+                log.mfa_status = True
+                db.session.add(log)
+                db.session.commit()
+                return jsonify({"code":0,"msg":"登录成功","redirect":url_for("admin.index")})
+            else:
+                return jsonify({"code":1,"msg":"动态口令无效"})
         else:
-            return jsonify({"code":1,"msg":"动态口令无效"})
+            return jsonify({"code":2,"msg":"动态口令必填"})
 
 
 @admin.route("/forgetpwd", methods=["GET", "POST"])

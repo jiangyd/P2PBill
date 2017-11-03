@@ -24,14 +24,18 @@ $(document).on("click","#mfa_code_submit",function () {
     var code=$("#code").val()
     var jsonobject=$("#formid").serializeArray();
     var v=arrayToJson(jsonobject)
-    alert(v)
     $.ajax({
         url:url,
         type:"POST",
         contentType:"application/json",
         data:v,
         success:function (data) {
-            if(data.code==1){
+            if(data.code==0){
+                toastr.options.timeOut = 5000;
+                toastr.success(data.msg)
+                location.href=data.redirect;
+
+            }else{
                 toastr.options.timeOut = 3000;
                 toastr.warning(data.msg)
             }
