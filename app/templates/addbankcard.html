@@ -1,0 +1,41 @@
+<div class="modal-header ">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">×
+                </button>
+                <h4 class="modal-title" id="myModalLabel">添加银行卡</h4>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="return addbankcard()" class="form-horizontal" action="{{url_for('admin.addbank')}}" method="post" id="addbank_form">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">开户银行</label>
+                        <div class="col-sm-10">
+                            {{form.name(class="form-control" , placeholder="请输入开户银行")}}
+                            {% for err in form.name.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">银行卡号</label>
+                        <div class="col-sm-10">
+                            {{form.card(class="form-control" , placeholder="请输入银行卡号")}}
+                            {% for err in form.card.errors %}
+                <p class="error"><strong>{{err}}</strong></p>
+                {%endfor%}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" >确认</button>
+                    </div>
+                </form>
+            </div>
+
+<script type="text/javascript">
+    function addbankcard() {
+        $("#addbank_form").submit();
+        return false;
+
+    }
+</script>

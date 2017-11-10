@@ -2,7 +2,7 @@ from . import admin
 from .vericode import veri_code
 from io import BytesIO
 from flask import render_template, redirect, url_for, session, request, jsonify, flash, Response
-from .forms import LoginForm, UserForm, BankCardForm, RegisterForm, ForgetPwdForm,RePwdForm
+from .forms import LoginForm, UserForm, BankCardForm, RegisterForm, ForgetPwdForm, RePwdForm
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow, ForGetPwd
 from functools import wraps
 from app import app
@@ -335,22 +335,24 @@ def bankcard(page=None):
 
 
 # 添加银行卡
-@admin.route("/bankcard/add", methods=["POST"])
+@admin.route("/bankcard/add", methods=["GET", "POST"])
 @admin_login_req
 def addbank():
+    form = BankCardForm()
     if request.method == "POST":
-        bank_name = request.form["bank_name"]
-        bank_card = request.form["bank_card"]
-        if len(bank_name) > 0 and len(bank_card) > 0:
-            bankcard = BankCard(name=bank_name, card=bank_card, user_id=int(session.get("userid")))
-            db.session.add(bankcard)
-            db.session.commit()
-            return redirect(url_for("admin.bankcard", page=1))
-    return redirect(url_for("admin.bankcard", page=1))
+        if form.validate_on_submit():
+            bank_name = request.form["bank_name"]
+            bank_card = request.form["bank_card"]
+            if len(bank_name) > 0 and len(bank_card) > 0:
+                bankcard = BankCard(name=bank_name, card=bank_card, user_id=int(session.get("userid")))
+                db.session.add(bankcard)
+                db.session.commit()
+                return redirect(url_for("admin.bankcard", page=1))
+    return render_template("addbankcard.html",form=form)
 
 
 @admin.route("/bankcard/modify", methods=["GET", "POST"])
-@admin_login_req
+@ admin_login_req
 def modifybank():
     if request.method == "GET":
         id = int(request.args.get("id"))
@@ -542,21 +544,21 @@ def setmfa():
 @admin.route("/verify_maf_code", methods=["POST"])
 def verify_mfa_code():
     if request.method == "POST":
-        #获取json数据
+        # 获取json数据
         code = json.loads(request.get_data())["code"].strip()
         user = User.query.filter_by(username=session.get("username")).first()
-        if len(code)>0:
+        if len(code) > 0:
             if totp.valid_totp(secret=user.secret, token=code):
                 session["userid"] = user.id
                 log = Loginlog(user.id, request.remote_addr)
                 log.mfa_status = True
                 db.session.add(log)
                 db.session.commit()
-                return jsonify({"code":0,"msg":"登录成功","redirect":url_for("admin.index")})
+                return jsonify({"code": 0, "msg": "登录成功", "redirect": url_for("admin.index")})
             else:
-                return jsonify({"code":1,"msg":"动态口令无效"})
+                return jsonify({"code": 1, "msg": "动态口令无效"})
         else:
-            return jsonify({"code":2,"msg":"动态口令必填"})
+            return jsonify({"code": 2, "msg": "动态口令必填"})
 
 
 @admin.route("/forgetpwd", methods=["GET", "POST"])
@@ -597,30 +599,30 @@ def forgetpwd():
 
 @admin.route("/repwd", methods=["GET", "POST"])
 def repwd():
-    error=None
-    form=RePwdForm()
-    token=None
+    error = None
+    form = RePwdForm()
+    token = None
     if request.method == "GET":
         token = request.args.get("token")
     if request.method == "POST":
         token = request.form.get("token")
         if form.validate_on_submit():
-            forgetpwd=ForGetPwd.query.filter_by(token=token).first()
-            password=request.form.get("password")
+            forgetpwd = ForGetPwd.query.filter_by(token=token).first()
+            password = request.form.get("password")
             if forgetpwd:
-                if datetime.now()>datetime.strptime(str(forgetpwd.expiretime),"%Y-%m-%d %H:%M:%S") or forgetpwd.use:
-                    error="令牌已过期"
+                if datetime.now() > datetime.strptime(str(forgetpwd.expiretime), "%Y-%m-%d %H:%M:%S") or forgetpwd.use:
+                    error = "令牌已过期"
                 else:
-                    user=User.query.filter_by(email=forgetpwd.email).first()
+                    user = User.query.filter_by(email=forgetpwd.email).first()
                     user.set_pwd(password)
-                    forgetpwd.use=True
+                    forgetpwd.use = True
                     db.session.add(forgetpwd)
                     db.session.add(user)
                     db.session.commit()
                     return redirect(url_for('admin.login'))
             else:
-                error="令牌无效"
-    return render_template("repwd.html", token=token, form=form,error=error)
+                error = "令牌无效"
+    return render_template("repwd.html", token=token, form=form, error=error)
 
 
 @admin.route("/captcha")
