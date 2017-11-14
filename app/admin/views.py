@@ -6,7 +6,8 @@ from .forms import LoginForm, UserForm, BankCardForm, RegisterForm, ForgetPwdFor
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow, ForGetPwd
 from functools import wraps
 from app import app
-from app.ext import db
+from app.ext import db,restful_api
+from flask_restful import Resource,reqparse
 from app.config import htmlbody, config
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -334,21 +335,66 @@ def bankcard(page=None):
     return render_template("bankcard.html", bankcardpage=True, page_data=page_data)
 
 
+class BankCardApi(Resource):
+    def card(self,card_str,exist=True):
+        """银行卡号验证"""
+        if exist:
+            if BankCard.card_exist(card_str):
+                raise ValueError("{} is exist".format(card_str))
+        if len(card_str)==0:
+            raise ValueError("银行卡号不能为空")
+        else:
+            return card_str
+    def name(name_str):
+        """银行卡名称验证"""
+        if len(name_str)==0:
+            raise ValueError("银行卡名称不能为空")
+    def id_exist(self,id_int):
+        """ID 验证"""
+        if isinstance(id_int,int):
+            if BankCard.id_exist(id_int):
+                if BankCard.id_exist(id_int):
+                    return id_int
+            else:
+                raise ValueError("{} is not exist".format(id_int))
+        else:
+            raise ValueError("type error must but int")
+
+    parse=reqparse.RequestParser()
+    parse.add_argument('name',type=name,required=True,location=['json'])
+
+
+    @admin_login_req
+    def post(self):
+        self.parse.add_argument('card', type=self.card, required=True, location=['json'])
+        args=self.parse.parse_args()
+        bankcard=BankCard(name=args.name,card=args.card,user_id=int(session.get("userid")))
+        db.session.add(bankcard)
+        db.session.commit()
+        return jsonify({"code":0,"msg":"添加成功"})
+    @admin_login_req
+    def put(self):
+
+        self.parse.add_argument('card', type=self.card('card',exist=False), required=True, location=['json'])
+        self.parse.add_argument('id', type=self.id_exist, required=True, location=['json'])
+        args = self.parse.parse_args()
+        bankcard=BankCard.query.filter_by(id=args.id)
+        bankcard.name=args.name
+        bankcard.card=args.card
+        db.session.update(bankcard)
+        db.session.commit()
+        return jsonify({"code": 0, "msg": "修改成功"})
+
+
+
 # 添加银行卡
-@admin.route("/bankcard/add", methods=["GET", "POST"])
-@admin_login_req
+@admin.route("/bankcard/add", methods=["GET"])
 def addbank():
-    form = BankCardForm()
-    if request.method == "POST":
-        if form.validate_on_submit():
-            bank_name = request.form["bank_name"]
-            bank_card = request.form["bank_card"]
-            if len(bank_name) > 0 and len(bank_card) > 0:
-                bankcard = BankCard(name=bank_name, card=bank_card, user_id=int(session.get("userid")))
-                db.session.add(bankcard)
-                db.session.commit()
-                return redirect(url_for("admin.bankcard", page=1))
-    return render_template("addbankcard.html",form=form)
+    return render_template("addbankcard.html")
+
+
+
+
 
 
 @admin.route("/bankcard/modify", methods=["GET", "POST"])
@@ -634,3 +680,6 @@ def captcha():
     print(code)
     res = Response(f.getvalue(), mimetype="image/jpeg")
     return res
+
+
+restful_api.add_resource(BankCardApi,'/bankcard/add',endpoint='addbank')
