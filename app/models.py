@@ -136,9 +136,12 @@ class BankCard(db.Model):
         self.card=card
         self.user_id=user_id
     @classmethod
-    def card_exist(cls,card):
+    def card_exist(cls,card,cardid=None):
         """验证卡号是否存在"""
-        return BankCard.query.filter_by(card=card).first()
+        if cardid is None:
+            return BankCard.query.filter_by(card=card).first()
+        else:
+            return BankCard.query.filter(BankCard.id!=cardid,BankCard.card==card).first()
     @classmethod
     def id_exist(cls,id):
         """验证ID是否存在"""

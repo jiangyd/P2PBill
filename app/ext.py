@@ -8,5 +8,5 @@ db=SQLAlchemy()
 
 scheduler=APScheduler()
 
-restful_api=Api()
+restful=Api()
 

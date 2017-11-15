@@ -22,6 +22,6 @@ JOBS = [
         'func': expire_invest,
         'args': (7,),
         'trigger': 'interval',
-        'seconds': 5
+        'seconds': 50000
     }
 ]

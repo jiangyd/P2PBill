@@ -79,7 +79,6 @@ $(document).on("click", "#modifybank_submit", function () {
     var url = $("#modifybank_submit").attr("url")
     var jsonobject = $("#modifybankform").serializeArray();
     var v = arrayToJson(jsonobject)
-    alert(v)
     $.ajax({
         url: url,
         type: "PUT",
@@ -87,7 +86,7 @@ $(document).on("click", "#modifybank_submit", function () {
         data: v,
         success: function (data) {
             if (data.code == 0) {
-                $("#bankcard").modal('hide')
+                $("#modifybank").modal('hide')
                 toastr.options.timeOut = 5000;
                 toastr.success(data.msg)
 
