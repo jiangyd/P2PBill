@@ -343,35 +343,34 @@ def bankcard(page=None):
 class BankCardApi(Resource):
 
     verify=BankCardVerify()
-    parse=reqparse.RequestParser()
-    parse.add_argument('name',type=verify.name,required=True,location=['json'])
+
+    # cardid=None
 
 
     @admin_login_req
     def post(self):
-        self.parse.add_argument('card', type=self.verify.card, required=True, location=['json'])
-        args=self.parse.parse_args()
+        parse = reqparse.RequestParser()
+        parse.add_argument('name', type=self.verify.name, required=True, location=['json'])
+        parse.add_argument('card', type=self.verify.card, required=True, location=['json'])
+        args=parse.parse_args()
         bankcard=BankCard(name=args.name,card=args.card,user_id=int(session.get("userid")))
         db.session.add(bankcard)
         db.session.commit()
         return jsonify({"code":0,"msg":"添加成功"})
     @admin_login_req
     def put(self):
-
-        self.parse.add_argument('id', type=self.verify.id_exist, required=True, location=['json'])
-
+        parse = reqparse.RequestParser()
+        parse.add_argument('id', type=self.verify.id_exist, required=True, location=['json'])
+        parse.add_argument('name', type=self.verify.name, required=True, location=['json'])
         #设置银行卡id
-        id=self.parse.parse_args().id
-        cc=lambda id,x:self.verify.card(id=id,x=x)
-        print(id)
-        self.parse.add_argument('card', type=cc, required=True, location=['json'])
-        args = self.parse.parse_args()
+        self.verify.cardid=parse.parse_args().id
+        parse.add_argument('card', type=self.verify.card, required=True, location=['json'])
+        args = parse.parse_args()
         bankcard=BankCard.query.filter_by(id=args.id).first()
         bankcard.name=args.name
         bankcard.card=args.card
         db.session.add(bankcard)
         db.session.commit()
-        self.verify.id = None
         return jsonify({"code": 0, "msg": "修改成功"})
 
 
