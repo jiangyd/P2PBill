@@ -341,17 +341,12 @@ def bankcard(page=None):
 
 
 class BankCardApi(Resource):
-
-    verify=BankCardVerify()
-
-    # cardid=None
-
-
     @admin_login_req
     def post(self):
+        verify = BankCardVerify()
         parse = reqparse.RequestParser()
-        parse.add_argument('name', type=self.verify.name, required=True, location=['json'])
-        parse.add_argument('card', type=self.verify.card, required=True, location=['json'])
+        parse.add_argument('name', type=verify.name, required=True, location=['json'])
+        parse.add_argument('card', type=verify.card, required=True, location=['json'])
         args=parse.parse_args()
         bankcard=BankCard(name=args.name,card=args.card,user_id=int(session.get("userid")))
         db.session.add(bankcard)
@@ -359,14 +354,17 @@ class BankCardApi(Resource):
         return jsonify({"code":0,"msg":"添加成功"})
     @admin_login_req
     def put(self):
+        verify = BankCardVerify()
         parse = reqparse.RequestParser()
-        parse.add_argument('id', type=self.verify.id_exist, required=True, location=['json'])
-        parse.add_argument('name', type=self.verify.name, required=True, location=['json'])
+        parse.add_argument('id', type=verify.id_exist, required=True, location=['json'])
+        parse.add_argument('name', type=verify.name, required=True, location=['json'])
         #设置银行卡id
-        self.verify.cardid=parse.parse_args().id
-        parse.add_argument('card', type=self.verify.card, required=True, location=['json'])
+        verify.cardid=parse.parse_args().id
+        parse.add_argument('card', type=verify.card, required=True, location=['json'])
         args = parse.parse_args()
         bankcard=BankCard.query.filter_by(id=args.id).first()
+        if bankcard.user_id!=session.get("userid"):
+            return jsonify({"code": 1, "msg": "无权限修改"})
         bankcard.name=args.name
         bankcard.card=args.card
         db.session.add(bankcard)

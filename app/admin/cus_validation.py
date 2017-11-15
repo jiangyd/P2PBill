@@ -13,19 +13,16 @@ class CaptchaError(object):
 
 
 class BankCardVerify(object):
-    carid=None
+    cardid=None
     def card(self, card_str):
-        cardid=self.cardid
-        self.cardid=None
         """银行卡号验证"""
         if len(card_str) == 0:
             raise ValueError("银行卡号不能为空")
-
-        if cardid is None:
+        if self.cardid is None:
             if BankCard.card_exist(card_str):
                 raise ValueError("{} is exist".format(card_str))
         else:
-            if BankCard.card_exist(card_str, cardid=cardid):
+            if BankCard.card_exist(card_str, cardid=self.cardid):
                 raise ValueError("{} is exist".format(card_str))
 
         return card_str
