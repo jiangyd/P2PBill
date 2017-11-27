@@ -35,6 +35,7 @@ class User(db.Model):
     def __init__(self,username,password,nickname,email,phone):
         self.username=username
         self.password=self.set_pwd(password)
+        print(self.password)
         self.nickname=nickname
         self.email=email
         self.phone=phone
@@ -48,6 +49,7 @@ class User(db.Model):
     face=db.Column(db.String(255)) #头像
     secret=db.Column(db.String(16)) #MFA密钥
     mfa_status=db.Column(db.Boolean,default=False) #用户mfa设置默认未开启
+    token=db.Column(db.String(500))
     loginlogs=db.relationship("Loginlog",backref="user")
     bankcards=db.relationship("BankCard",backref="user")
     invests = db.relationship("Invest", backref="user")
@@ -56,7 +58,7 @@ class User(db.Model):
     def check_pwd(self,pwd):
         return check_password_hash(self.password,pwd)
     def set_pwd(self,pwd):
-        self.password=generate_password_hash(pwd)
+        return generate_password_hash(pwd)
     def to_json(self):
         json_user={
             "id":self.id,
@@ -188,8 +190,8 @@ class ForGetPwd(db.Model):
 
 
 if __name__=="__main__":
-    # pass
-    db.create_all()
-    user=User(username="admin",password=generate_password_hash("Qwe123123"),nickname="道可道",email="962584902@qq.com",phone="15821834763")
-    db.session.add(user)
-    db.session.commit()
+    pass
+    # db.create_all()
+    # user=User(username="admin",password=generate_password_hash("Qwe123123"),nickname="道可道",email="962584902@qq.com",phone="15821834763")
+    # db.session.add(user)
+    # db.session.commit()

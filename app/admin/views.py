@@ -16,10 +16,32 @@ import json
 from .util import get_secret, SendMailByAli
 from .cus_validation import BankCardVerify
 import onetimepass as totp
+from flask import g,make_response
 import time
 import uuid
 import os
 import hashlib
+
+from flask_httpauth import HTTPTokenAuth
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+auth=HTTPTokenAuth(scheme='P2PBill-AUTH-TOKEN')
+
+serializer = Serializer(app.config.get("SECRET_KEY"),expires_in=1800)
+
+def create_token(data):
+
+    token=serializer.dumps(data)
+    return token.decode("utf-8")
+
+@auth.verify_token
+def verify_token(token):
+    try:
+        data=serializer.loads(token)
+    except:
+        return False
+    g.user=User.query.filter_by(username=data["username"]).first()
+    return True
+
 
 
 def admin_login_req(f):
@@ -31,6 +53,35 @@ def admin_login_req(f):
 
     return decorated_function
 
+
+
+class LoginApi(Resource):
+    def post(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('username', type=str, required=True, location=['json'])
+        parse.add_argument('password', type=str, required=True, location=['json'])
+        args = parse.parse_args()
+        print(args.username,args.password)
+        user=User.query.filter_by(username=args.username).first()
+        print(user)
+        if not user or not user.check_pwd(args.password):
+            res=make_response(jsonify({"code":1,"msg":"用户或密码错误"}))
+            # res.headers['Access-Control-Allow-Origin'] = '*'
+            return res
+        else:
+            token=create_token({"username":user.username,"password":user.password})
+            user.token=token
+            db.session.add(user)
+            db.session.commit()
+            res= make_response(jsonify({"code":0,"msg":"","data":{"username":user.username,
+                            "nickname":user.nickname,
+                            "email":user.email,
+                            "phone":user.phone,
+                            "face":user.face,
+                            "mfa_status":user.mfa_status,
+                            "token":token}}))
+            # res.headers['Access-Control-Allow-Origin']='*'
+            return res
 
 @admin.route("/login", methods=["GET", "POST"])
 def login():
@@ -341,7 +392,8 @@ def bankcard(page=None):
 
 
 class BankCardApi(Resource):
-    @admin_login_req
+    # @admin_login_req
+    decorators = [auth.verify_token]
     def post(self):
         verify = BankCardVerify()
         parse = reqparse.RequestParser()
@@ -665,7 +717,9 @@ def captcha():
     session['captcha'] = code
     print(code)
     res = Response(f.getvalue(), mimetype="image/jpeg")
+    res.headers['Access-Control-Allow-Origin']='*'
     return res
 
 
 restful.add_resource(BankCardApi,'/bankcard/add',endpoint='addbank')
+restful.add_resource(LoginApi,'/admin/logins',endpoint='logins')
