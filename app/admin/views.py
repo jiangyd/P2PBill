@@ -7,7 +7,7 @@ from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow,
 from functools import wraps
 from app import app
 from app.ext import db,restful
-from flask_restful import Resource,reqparse
+from flask_restful import Resource,reqparse,fields,marshal_with
 from app.config import htmlbody, config
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -24,24 +24,30 @@ import hashlib
 
 from flask_httpauth import HTTPTokenAuth
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-auth=HTTPTokenAuth(scheme='P2PBill-AUTH-TOKEN')
-
-serializer = Serializer(app.config.get("SECRET_KEY"),expires_in=1800)
+# auth=HTTPTokenAuth(scheme='P2PBill-AUTH-TOKEN')
+auth=HTTPTokenAuth(scheme='Bearer')
+serializer = Serializer(app.config["SECRET_KEY"],expires_in=1800)
 
 def create_token(data):
 
     token=serializer.dumps(data)
     return token.decode("utf-8")
 
+
+
 @auth.verify_token
-def verify_token(token):
+def verify_auth_token(token):
+    print("*************************")
+    g.user=None
     try:
         data=serializer.loads(token)
+        print(data)
     except:
         return False
-    g.user=User.query.filter_by(username=data["username"]).first()
-    return True
-
+    if "username" in data:
+        g.user=User.query.filter_by(username=data["username"]).first()
+        return True
+    return False
 
 
 def admin_login_req(f):
@@ -510,6 +516,31 @@ def loginlog(page=None):
     return render_template("loginlog.html", loginlogpage=True, page_data=page_data)
 
 
+class LoginLogApi(Resource):
+
+    decorators = [auth.login_required]
+    resource_fields={'num_result':fields.Integer,
+        "objects":fields.List(fields.Nested({
+        'id':fields.Integer,
+        'user_id':fields.Integer,
+        'ip':fields.String,
+        'mfa_status':fields.Boolean,
+        'addtime':fields.String})),
+        "page":fields.Integer,
+        "total_page":fields.Integer
+    }
+
+    @marshal_with(resource_fields,envelope='resource')
+    def get(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('page_index', type=int, required=True, location=['json','args'])
+        args = parse.parse_args()
+        login=Loginlog.query.filter_by(user_id=1).order_by(Loginlog.addtime.desc()).paginate(
+            page=args.page_index, per_page=10)
+        print(login)
+        return "test"
+
+
 # 注册
 @admin.route("/register", methods=["GET", "POST"])
 def register():
@@ -723,3 +754,4 @@ def captcha():
 
 restful.add_resource(BankCardApi,'/bankcard/add',endpoint='addbank')
 restful.add_resource(LoginApi,'/admin/logins',endpoint='logins')
+restful.add_resource(LoginLogApi,'/admin/loginlogs',endpoint='loginlogs')

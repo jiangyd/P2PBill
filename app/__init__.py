@@ -11,7 +11,7 @@ import os
 app=Flask(__name__)
 
 app.config["SECRET_KEY" ]='you-will-never-guess'
-app.config["SQLALCHEMY_DATABASE_URI"]="mysql+pymysql://root:123456@127.0.0.1:3306/p2pbill"
+app.config["SQLALCHEMY_DATABASE_URI"]="mysql+pymysql://root:123456@192.168.56.102:3377/p2pbill"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=True
 app.config["SQLALCHEMY_ECHO"]=False
 
