@@ -24,10 +24,9 @@ import hashlib
 
 from flask_httpauth import HTTPTokenAuth
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-# auth=HTTPTokenAuth(scheme='P2PBill-AUTH-TOKEN')
-auth=HTTPTokenAuth(scheme='Bearer')
-serializer = Serializer(app.config["SECRET_KEY"],expires_in=1800)
 
+serializer = Serializer(app.config["SECRET_KEY"],expires_in=1800)
+auth=HTTPTokenAuth(scheme='Bearer')
 def create_token(data):
 
     token=serializer.dumps(data)
@@ -36,12 +35,11 @@ def create_token(data):
 
 
 @auth.verify_token
-def verify_auth_token(token):
+def verify_token(token):
     print("*************************")
     g.user=None
     try:
         data=serializer.loads(token)
-        print(data)
     except:
         return False
     if "username" in data:
@@ -399,7 +397,8 @@ def bankcard(page=None):
 
 class BankCardApi(Resource):
     # @admin_login_req
-    decorators = [auth.verify_token]
+    # decorators = [auth.verify_token]
+    decorators = [auth.login_required]
     def post(self):
         verify = BankCardVerify()
         parse = reqparse.RequestParser()
@@ -751,7 +750,6 @@ def captcha():
     res.headers['Access-Control-Allow-Origin']='*'
     return res
 
-
+restful.add_resource(LoginLogApi,'/admin/slogs',endpoint='loginlogs')
 restful.add_resource(BankCardApi,'/bankcard/add',endpoint='addbank')
 restful.add_resource(LoginApi,'/admin/logins',endpoint='logins')
-restful.add_resource(LoginLogApi,'/admin/loginlogs',endpoint='loginlogs')
