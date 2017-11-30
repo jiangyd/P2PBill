@@ -6,8 +6,8 @@ from .forms import LoginForm, UserForm, BankCardForm, RegisterForm, ForgetPwdFor
 from app.models import User, Loginlog, BankCard, P2P, UserP2P, Invest, BillFlow, ForGetPwd
 from functools import wraps
 from app import app
-from app.ext import db,restful
-from flask_restful import Resource,reqparse,fields,marshal_with
+from app.ext import db, restful
+from flask_restful import Resource, reqparse, fields, marshal_with
 from app.config import htmlbody, config
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -16,26 +16,49 @@ import json
 from .util import get_secret, SendMailByAli
 from .cus_validation import BankCardVerify
 import onetimepass as totp
-from flask import g,make_response
+from flask import g, make_response
 import time
 import uuid
 import os
 import hashlib
+import math
 
 from flask_httpauth import HTTPTokenAuth
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
+<<<<<<< HEAD
+auth = HTTPTokenAuth(scheme='Bearer')
+serializer = Serializer(app.config["SECRET_KEY"], expires_in=1800)
+=======
 serializer = Serializer(app.config["SECRET_KEY"],expires_in=1800)
 auth=HTTPTokenAuth(scheme='Bearer')
 def create_token(data):
+>>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
 
-    token=serializer.dumps(data)
+
+def create_token(data):
+    """生成token"""
+    token = serializer.dumps(data)
     return token.decode("utf-8")
-
 
 
 @auth.verify_token
 def verify_token(token):
+<<<<<<< HEAD
+    """验证token"""
+    g.user = User.query.filter_by(token=token).first()
+    return g.user is not None
+    # g.user=None
+    # try:
+    #     data=serializer.loads(token)
+    #     print(data)
+    # except:
+    #     return False
+    # if "username" in data:
+    #     g.user=User.query.filter_by(username=data["username"]).first()
+    #     return True
+    # return False
+=======
     print("*************************")
     g.user=None
     try:
@@ -46,6 +69,7 @@ def verify_token(token):
         g.user=User.query.filter_by(username=data["username"]).first()
         return True
     return False
+>>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
 
 
 def admin_login_req(f):
@@ -58,34 +82,32 @@ def admin_login_req(f):
     return decorated_function
 
 
-
 class LoginApi(Resource):
+    """登录接口"""
+
     def post(self):
         parse = reqparse.RequestParser()
         parse.add_argument('username', type=str, required=True, location=['json'])
         parse.add_argument('password', type=str, required=True, location=['json'])
         args = parse.parse_args()
-        print(args.username,args.password)
-        user=User.query.filter_by(username=args.username).first()
-        print(user)
+        user = User.query.filter_by(username=args.username).first()
         if not user or not user.check_pwd(args.password):
-            res=make_response(jsonify({"code":1,"msg":"用户或密码错误"}))
-            # res.headers['Access-Control-Allow-Origin'] = '*'
+            res = make_response(jsonify({"code": 1, "msg": "用户或密码错误"}))
             return res
         else:
-            token=create_token({"username":user.username,"password":user.password})
-            user.token=token
+            token = create_token({"username": user.username, "password": user.password})
+            user.token = token
             db.session.add(user)
             db.session.commit()
-            res= make_response(jsonify({"code":0,"msg":"","data":{"username":user.username,
-                            "nickname":user.nickname,
-                            "email":user.email,
-                            "phone":user.phone,
-                            "face":user.face,
-                            "mfa_status":user.mfa_status,
-                            "token":token}}))
-            # res.headers['Access-Control-Allow-Origin']='*'
+            res = make_response(jsonify({"code": 0, "msg": "", "data": {"username": user.username,
+                                                                        "nickname": user.nickname,
+                                                                        "email": user.email,
+                                                                        "phone": user.phone,
+                                                                        "face": user.face,
+                                                                        "mfa_status": user.mfa_status,
+                                                                        "token": token}}))
             return res
+
 
 @admin.route("/login", methods=["GET", "POST"])
 def login():
@@ -391,43 +413,44 @@ def bankcard(page=None):
     return render_template("bankcard.html", bankcardpage=True, page_data=page_data)
 
 
-
-
-
-
 class BankCardApi(Resource):
+<<<<<<< HEAD
+    """添加及修改银行卡接口"""
+    decorators = [auth.login_required]
+
+=======
     # @admin_login_req
     # decorators = [auth.verify_token]
     decorators = [auth.login_required]
+>>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
     def post(self):
         verify = BankCardVerify()
         parse = reqparse.RequestParser()
         parse.add_argument('name', type=verify.name, required=True, location=['json'])
         parse.add_argument('card', type=verify.card, required=True, location=['json'])
-        args=parse.parse_args()
-        bankcard=BankCard(name=args.name,card=args.card,user_id=int(session.get("userid")))
+        args = parse.parse_args()
+        bankcard = BankCard(name=args.name, card=args.card, user_id=int(session.get("userid")))
         db.session.add(bankcard)
         db.session.commit()
-        return jsonify({"code":0,"msg":"添加成功"})
-    @admin_login_req
+        return jsonify({"code": 0, "msg": "添加成功"})
+
     def put(self):
         verify = BankCardVerify()
         parse = reqparse.RequestParser()
         parse.add_argument('id', type=verify.id_exist, required=True, location=['json'])
         parse.add_argument('name', type=verify.name, required=True, location=['json'])
-        #设置银行卡id
-        verify.cardid=parse.parse_args().id
+        # 设置银行卡id
+        verify.cardid = parse.parse_args().id
         parse.add_argument('card', type=verify.card, required=True, location=['json'])
         args = parse.parse_args()
-        bankcard=BankCard.query.filter_by(id=args.id).first()
-        if bankcard.user_id!=session.get("userid"):
+        bankcard = BankCard.query.filter_by(id=args.id).first()
+        if bankcard.user_id != session.get("userid"):
             return jsonify({"code": 1, "msg": "无权限修改"})
-        bankcard.name=args.name
-        bankcard.card=args.card
+        bankcard.name = args.name
+        bankcard.card = args.card
         db.session.add(bankcard)
         db.session.commit()
         return jsonify({"code": 0, "msg": "修改成功"})
-
 
 
 # 添加银行卡
@@ -436,12 +459,8 @@ def addbank():
     return render_template("addbankcard.html")
 
 
-
-
-
-
 @admin.route("/bankcard/modify", methods=["GET", "POST"])
-@ admin_login_req
+@admin_login_req
 def modifybank():
     if request.method == "GET":
         id = int(request.args.get("id"))
@@ -516,28 +535,27 @@ def loginlog(page=None):
 
 
 class LoginLogApi(Resource):
-
+    """获取登录日志接口"""
     decorators = [auth.login_required]
-    resource_fields={'num_result':fields.Integer,
-        "objects":fields.List(fields.Nested({
-        'id':fields.Integer,
-        'user_id':fields.Integer,
-        'ip':fields.String,
-        'mfa_status':fields.Boolean,
-        'addtime':fields.String})),
-        "page":fields.Integer,
-        "total_page":fields.Integer
-    }
+    resource_fields = {'num_result': fields.Integer,
+                       "objects": fields.List(fields.Nested({
+                           'id': fields.Integer,
+                           'user_id': fields.Integer,
+                           'ip': fields.String,
+                           'mfa_status': fields.Boolean,
+                           'addtime': fields.String})),
+                       "page": fields.Integer,
+                       "total_page": fields.Integer
+                       }
 
-    @marshal_with(resource_fields,envelope='resource')
+    @marshal_with(resource_fields, envelope='loginlog_resource')
     def get(self):
         parse = reqparse.RequestParser()
-        parse.add_argument('page_index', type=int, required=True, location=['json','args'])
+        parse.add_argument('page_index', type=int, required=True, location=['args'])
         args = parse.parse_args()
-        login=Loginlog.query.filter_by(user_id=1).order_by(Loginlog.addtime.desc()).paginate(
+        login = Loginlog.query.filter_by(user_id=g.user.id).order_by(Loginlog.addtime.desc()).paginate(
             page=args.page_index, per_page=10)
-        print(login)
-        return "test"
+        return {"num_result": login.total, "objects": login.items, "page": login.page, "total_page": login.pages}
 
 
 # 注册
@@ -747,9 +765,16 @@ def captcha():
     session['captcha'] = code
     print(code)
     res = Response(f.getvalue(), mimetype="image/jpeg")
-    res.headers['Access-Control-Allow-Origin']='*'
+    res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
+<<<<<<< HEAD
+
+restful.add_resource(BankCardApi, '/bankcard/add', endpoint='addbank')
+restful.add_resource(LoginApi, '/admin/logins', endpoint='logins')
+restful.add_resource(LoginLogApi, '/admin/loginlogs', endpoint='loginlogs')
+=======
 restful.add_resource(LoginLogApi,'/admin/slogs',endpoint='loginlogs')
 restful.add_resource(BankCardApi,'/bankcard/add',endpoint='addbank')
 restful.add_resource(LoginApi,'/admin/logins',endpoint='logins')
+>>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
