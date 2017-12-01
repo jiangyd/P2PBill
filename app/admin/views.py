@@ -103,12 +103,12 @@ def login():
     return render_template("login.html", form=form, error=error)
 
 
-@admin.route("/logout", methods=["GET"])
-@admin_login_req
-def logout():
-    session.pop("userid")
-    session.pop("username")
-    return redirect(url_for("admin.login"))
+# @admin.route("/logout", methods=["GET"])
+# @admin_login_req
+# def logout():
+#     session.pop("userid")
+#     session.pop("username")
+#     return redirect(url_for("admin.login"))
 
 
 @admin.route("/modifypwd", methods=["POST"])
@@ -499,6 +499,15 @@ def loginlog(page=None):
     return render_template("loginlog.html", loginlogpage=True, page_data=page_data)
 
 
+class LogoutApi(Resource):
+    """登出接口"""
+    decorators = [auth.login_required]
+    def get(self):
+        g.user.token=""
+        db.session.add(g.user)
+        db.session.commit()
+        return jsonify({"code":0,"msg":"","data":[]})
+
 class LoginLogApi(Resource):
     """获取登录日志接口"""
     decorators = [auth.login_required]
@@ -737,4 +746,5 @@ def captcha():
 restful.add_resource(BankCardApi, '/bankcard/add', endpoint='addbank')
 restful.add_resource(LoginApi, '/admin/logins', endpoint='logins')
 restful.add_resource(LoginLogApi, '/admin/loginlogs', endpoint='loginlogs')
+restful.add_resource(LogoutApi, '/admin/logout', endpoint='logout')
 
