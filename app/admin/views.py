@@ -26,14 +26,10 @@ import math
 from flask_httpauth import HTTPTokenAuth
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-<<<<<<< HEAD
+
 auth = HTTPTokenAuth(scheme='Bearer')
 serializer = Serializer(app.config["SECRET_KEY"], expires_in=1800)
-=======
-serializer = Serializer(app.config["SECRET_KEY"],expires_in=1800)
-auth=HTTPTokenAuth(scheme='Bearer')
-def create_token(data):
->>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
+
 
 
 def create_token(data):
@@ -44,32 +40,9 @@ def create_token(data):
 
 @auth.verify_token
 def verify_token(token):
-<<<<<<< HEAD
     """验证token"""
     g.user = User.query.filter_by(token=token).first()
     return g.user is not None
-    # g.user=None
-    # try:
-    #     data=serializer.loads(token)
-    #     print(data)
-    # except:
-    #     return False
-    # if "username" in data:
-    #     g.user=User.query.filter_by(username=data["username"]).first()
-    #     return True
-    # return False
-=======
-    print("*************************")
-    g.user=None
-    try:
-        data=serializer.loads(token)
-    except:
-        return False
-    if "username" in data:
-        g.user=User.query.filter_by(username=data["username"]).first()
-        return True
-    return False
->>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
 
 
 def admin_login_req(f):
@@ -414,15 +387,7 @@ def bankcard(page=None):
 
 
 class BankCardApi(Resource):
-<<<<<<< HEAD
-    """添加及修改银行卡接口"""
     decorators = [auth.login_required]
-
-=======
-    # @admin_login_req
-    # decorators = [auth.verify_token]
-    decorators = [auth.login_required]
->>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
     def post(self):
         verify = BankCardVerify()
         parse = reqparse.RequestParser()
@@ -768,13 +733,8 @@ def captcha():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-<<<<<<< HEAD
 
 restful.add_resource(BankCardApi, '/bankcard/add', endpoint='addbank')
 restful.add_resource(LoginApi, '/admin/logins', endpoint='logins')
 restful.add_resource(LoginLogApi, '/admin/loginlogs', endpoint='loginlogs')
-=======
-restful.add_resource(LoginLogApi,'/admin/slogs',endpoint='loginlogs')
-restful.add_resource(BankCardApi,'/bankcard/add',endpoint='addbank')
-restful.add_resource(LoginApi,'/admin/logins',endpoint='logins')
->>>>>>> 991a27d25fe76bc02a26c8a38894b283deecbecd
+
