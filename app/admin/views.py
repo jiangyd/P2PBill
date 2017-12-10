@@ -101,14 +101,6 @@ def login():
     return render_template("login.html", form=form, error=error)
 
 
-@admin.route("/logout", methods=["GET"])
-@admin_login_req
-def logout():
-    session.pop("userid")
-    session.pop("username")
-    return redirect(url_for("admin.login"))
-
-
 @admin.route("/modifypwd", methods=["POST"])
 @admin_login_req
 def modifypwd():
@@ -386,6 +378,14 @@ def bankcard(page=None):
 
 class BankCardApi(Resource):
     decorators = [auth.login_required]
+    def get(self):
+        verify = BankCardVerify()
+        parse = reqparse.RequestParser()
+        parse.add_argument('id', type=verify.id_exist, required=True, location=['args'])
+        args = parse.parse_args()
+        bankcard = BankCard.query.filter_by(user_id=g.user.id, id=args.id).first()
+
+        return jsonify({"code": 0, "msg": "","data":{"id":bankcard.id,"name":bankcard.name,"card":bankcard.card}})
 
     def post(self):
         verify = BankCardVerify()
@@ -393,10 +393,10 @@ class BankCardApi(Resource):
         parse.add_argument('name', type=verify.name, required=True, location=['json'])
         parse.add_argument('card', type=verify.card, required=True, location=['json'])
         args = parse.parse_args()
-        bankcard = BankCard(name=args.name, card=args.card, user_id=int(session.get("userid")))
+        bankcard = BankCard(name=args.name, card=args.card, user_id=g.user.id)
         db.session.add(bankcard)
         db.session.commit()
-        return jsonify({"code": 0, "msg": "添加成功"})
+        return jsonify({"code": 0, "msg": ""})
 
     def put(self):
         verify = BankCardVerify()
@@ -408,13 +408,31 @@ class BankCardApi(Resource):
         parse.add_argument('card', type=verify.card, required=True, location=['json'])
         args = parse.parse_args()
         bankcard = BankCard.query.filter_by(id=args.id).first()
-        if bankcard.user_id != session.get("userid"):
+        if bankcard.user_id != g.user.id:
             return jsonify({"code": 1, "msg": "无权限修改"})
         bankcard.name = args.name
         bankcard.card = args.card
         db.session.add(bankcard)
         db.session.commit()
-        return jsonify({"code": 0, "msg": "修改成功"})
+        return jsonify({"code": 0, "msg": ""})
+
+    def delete(self):
+        verify = BankCardVerify()
+        parse = reqparse.RequestParser()
+        parse.add_argument('id', type=verify.id_exist, required=True, location=['json'])
+        args = parse.parse_args()
+        bankcard = BankCard.query.filter_by(id=args.id).first()
+        if bankcard.user_id != g.user.id:
+            return jsonify({"code": 1, "msg": "无权限删除"})
+        db.session.delete(bankcard)
+        db.session.commit()
+        return jsonify({"code": 0, "msg": "删除成功"})
+
+class MyP2pApi(Resource):
+    decorators = [auth.login_required]
+
+    def post(self):
+        pass
 
 
 # 添加银行卡
@@ -452,39 +470,7 @@ def delbank():
     return redirect(url_for("admin.bankcard", page=1))
 
 
-# 用户信息
-@admin.route("/user", methods=["GET", "POST"])
-@admin_login_req
-def user():
-    form = UserForm()
-    user = User.query.filter_by(username=session.get("username")).first()
-    if request.method == "GET":
-        form.username.data = user.username
-        form.nickname.data = user.nickname
-        form.email.data = user.email
-        form.phone.data = user.phone
-        form.face.data = user.face
-    if form.validate_on_submit():
-        f = form.face.data
-        if f is not None:
-            face_filename = secure_filename(f.filename)
-            f.save(os.path.join(app.config["UPLOAD_FOLDER"], face_filename))
-            user.face = face_filename
-        user.nickname = form.nickname.data
-        user.email = form.email.data
-        user.phone = form.phone.data
-        db.session.add(user)
-        db.session.commit()
-    return render_template("user.html", userpage=True, form=form, user=user)
 
-
-# 供ajax调用局部更新页面
-@admin.route("/userinfo", methods=["GET"])
-@admin_login_req
-def userinfo():
-    id = session.get("userid")
-    user = User.query.filter_by(id=int(id)).first()
-    return jsonify(user.to_json())
 
 
 # 登录日志
@@ -553,7 +539,7 @@ class LoginLogApi(Resource):
 class BankListApi(Resource):
     """银行卡管理"""
     decorators = [auth.login_required]
-    resource_fields = {'num_result': fields.Integer,
+    resource_fields = {"code":fields.Integer,'num_result': fields.Integer,
                        "objects": fields.List(fields.Nested({
                            'id': fields.Integer,
                            # 'user': fields.Nested({"username":fields.String}),
@@ -567,13 +553,18 @@ class BankListApi(Resource):
     @marshal_with(resource_fields)
     def get(self):
         parse = reqparse.RequestParser()
-        parse.add_argument('page_index', type=int, required=True, location=['args'])
+        parse.add_argument('page_index', type=int, required=False, location=['args'])
         args = parse.parse_args()
-        bank = BankCard.query.filter_by(user_id=g.user.id).order_by(BankCard.id.desc()).paginate(page=args.page_index,
-                                                                                                 per_page=10)
+        if args.page_index is None:
+
+            bank = BankCard.query.filter_by(user_id=g.user.id).order_by(BankCard.id.desc()).paginate()
+        else:
+            bank = BankCard.query.filter_by(user_id=g.user.id).order_by(BankCard.id.desc()).paginate(
+                page=args.page_index,
+                per_page=10)
         for i in range(len(bank.items)):
             bank.items[i].username = bank.items[i].user.username
-        return {"num_result": bank.total, "objects": bank.items, "page": bank.page, "total_page": bank.pages}
+        return {"code":0,"num_result": bank.total, "objects": bank.items, "page": bank.page, "total_page": bank.pages}
 
 
 class P2PListApi(Resource):
@@ -588,42 +579,44 @@ class P2PListApi(Resource):
                            'risk_deposit': fields.Boolean})),
                        "page": fields.Integer,
                        "total_page": fields.Integer,
-                       "code":fields.Integer,
-                       "msg":fields.String
+                       "code": fields.Integer,
+                       "msg": fields.String
                        }
 
     @marshal_with(resource_fields)
     def get(self):
         parse = reqparse.RequestParser()
-        parse.add_argument('page_index', type=int, required=True, location=['args'])
+        parse.add_argument('page_index', type=int, required=False, location=['args'])
         args = parse.parse_args()
-        p2p = P2P.query.filter_by().order_by(P2P.id.desc()).paginate(page=args.page_index, per_page=10)
-        return {"code":"0","msg":"","num_result": p2p.total, "objects": p2p.items, "page": p2p.page, "total_page": p2p.pages}
-
-
+        if args.page_index is None:
+            p2p = P2P.query.filter_by().order_by(P2P.id.desc()).paginate()
+        else:
+            p2p = P2P.query.filter_by().order_by(P2P.id.desc()).paginate(page=args.page_index, per_page=10)
+        return {"code": "0", "msg": "", "num_result": p2p.total, "objects": p2p.items, "page": p2p.page,
+                "total_page": p2p.pages}
 
 
 class MyP2PListApi(Resource):
     """我的平台"""
     decorators = [auth.login_required]
 
-    resource_fields={
-        "code":fields.Integer,
-        "msg":fields.String,
-        "num_result":fields.Integer,
-        "page":fields.Integer,
-        "total_page":fields.Integer,
+    resource_fields = {
+        "code": fields.Integer,
+        "msg": fields.String,
+        "num_result": fields.Integer,
+        "page": fields.Integer,
+        "total_page": fields.Integer,
         "objects": fields.List(fields.Nested({
             'id': fields.Integer,
             "p2p_id": fields.String,
-            "p2p_name":fields.String,
+            "p2p_name": fields.String,
             'username': fields.String,
             'account': fields.String,
             'password': fields.String,
-            "card_id":fields.Integer,
-            "card_name":fields.String,
-            "card_card":fields.String,
-            "phone":fields.String
+            "card_id": fields.Integer,
+            "card_name": fields.String,
+            "card_card": fields.String,
+            "phone": fields.String
         }))
     }
 
@@ -632,37 +625,40 @@ class MyP2PListApi(Resource):
         parse = reqparse.RequestParser()
         parse.add_argument('page_index', type=int, required=True, location=['args'])
         args = parse.parse_args()
-        myp2p=UserP2P.query.filter_by(user_id=g.user.id).order_by(UserP2P.id.desc()).paginate(page=args.page_index, per_page=10)
+        myp2p = UserP2P.query.filter_by(user_id=g.user.id).order_by(UserP2P.id.desc()).paginate(page=args.page_index,
+                                                                                                per_page=10)
         for i in range(len(myp2p.items)):
             myp2p.items[i].username = myp2p.items[i].user.username
             myp2p.items[i].p2p_name = myp2p.items[i].p2p.name
-            myp2p.items[i].card_name=myp2p.items[i].bankcard.name
+            myp2p.items[i].card_name = myp2p.items[i].bankcard.name
             myp2p.items[i].card_card = myp2p.items[i].bankcard.card
-        return {"code":0,"msg":"","num_result": myp2p.total, "objects": myp2p.items, "page": myp2p.page, "total_page": myp2p.pages}
+        return {"code": 0, "msg": "", "num_result": myp2p.total, "objects": myp2p.items, "page": myp2p.page,
+                "total_page": myp2p.pages}
+
 
 class BillFlowListApi(Resource):
     """资金流水"""
     decorators = [auth.login_required]
 
-    resource_fields={
-        "code":fields.Integer,
-        "msg":fields.String,
-        "num_result":fields.Integer,
-        "page":fields.Integer,
-        "total_page":fields.Integer,
+    resource_fields = {
+        "code": fields.Integer,
+        "msg": fields.String,
+        "num_result": fields.Integer,
+        "page": fields.Integer,
+        "total_page": fields.Integer,
         "objects": fields.List(fields.Nested({
             'id': fields.Integer,
             "p2p_id": fields.String,
-            "p2p_name":fields.String,
+            "p2p_name": fields.String,
             'username': fields.String,
-            "money":fields.Float,
-            "status":fields.Integer,
-            "type":fields.Integer,
-            "card_id":fields.Integer,
-            "card_name":fields.String,
-            "card_card":fields.String,
-            "addtime":fields.String,
-            "donetime":fields.String,
+            "money": fields.Float,
+            "status": fields.Integer,
+            "type": fields.Integer,
+            "card_id": fields.Integer,
+            "card_name": fields.String,
+            "card_card": fields.String,
+            "addtime": fields.String,
+            "donetime": fields.String,
         }))
     }
 
@@ -671,13 +667,15 @@ class BillFlowListApi(Resource):
         parse = reqparse.RequestParser()
         parse.add_argument('page_index', type=int, required=True, location=['args'])
         args = parse.parse_args()
-        billflow=BillFlow.query.filter_by(user_id=g.user.id).order_by(BillFlow.addtime.desc()).paginate(page=args.page_index, per_page=10)
+        billflow = BillFlow.query.filter_by(user_id=g.user.id).order_by(BillFlow.addtime.desc()).paginate(
+            page=args.page_index, per_page=10)
         for i in range(len(billflow.items)):
-            billflow.items[i].username=billflow.items[i].user.username
-            billflow.items[i].p2p_name=billflow.items[i].p2p.name
-            billflow.items[i].card_name=billflow.items[i].bankcard.name
-            billflow.items[i].card_card=billflow.items[i].bankcard.card
-        return  {"code":0,"msg":"","num_result":billflow.total,"objects":billflow.items,"page":billflow.page,"total_page":billflow.pages}
+            billflow.items[i].username = billflow.items[i].user.username
+            billflow.items[i].p2p_name = billflow.items[i].p2p.name
+            billflow.items[i].card_name = billflow.items[i].bankcard.name
+            billflow.items[i].card_card = billflow.items[i].bankcard.card
+        return {"code": 0, "msg": "", "num_result": billflow.total, "objects": billflow.items, "page": billflow.page,
+                "total_page": billflow.pages}
 
 
 class InvestListApi(Resource):
@@ -704,19 +702,17 @@ class InvestListApi(Resource):
     }
 
     @marshal_with(resource_fields)
-
     def get(self):
         parse = reqparse.RequestParser()
         parse.add_argument('page_index', type=int, required=True, location=['args'])
         args = parse.parse_args()
-        investlist=Invest.query.filter_by(user_id=g.user.id).order_by(Invest.id.desc()).paginate(page=args.page_index, per_page=10)
+        investlist = Invest.query.filter_by(user_id=g.user.id).order_by(Invest.id.desc()).paginate(page=args.page_index,
+                                                                                                   per_page=10)
         for i in range(len(investlist.items)):
-            investlist.items[i].p2p_name=investlist.items[i].p2p.name
+            investlist.items[i].p2p_name = investlist.items[i].p2p.name
             investlist.items[i].username = investlist.items[i].user.username
-        return {"code":0,"msg":"","num_result":investlist.total,"objects":investlist.items,"page":investlist.page,"total_page":investlist.pages}
-
-
-
+        return {"code": 0, "msg": "", "num_result": investlist.total, "objects": investlist.items,
+                "page": investlist.page, "total_page": investlist.pages}
 
 
 # 注册
@@ -930,13 +926,13 @@ def captcha():
     return res
 
 
-restful.add_resource(BankCardApi, '/bankcard/add', endpoint='addbank')
+restful.add_resource(BankCardApi, '/admin/bankcard', endpoint='bankcard')
 restful.add_resource(LoginApi, '/admin/logins', endpoint='logins')
 restful.add_resource(LoginLogApi, '/admin/loginlogs', endpoint='loginlogs')
 restful.add_resource(LogoutApi, '/admin/logout', endpoint='logout')
 restful.add_resource(GetUserInfoApi, '/admin/userinfo', endpoint='userinfo')
 restful.add_resource(BankListApi, '/admin/banklist', endpoint='banklist')
 restful.add_resource(P2PListApi, '/admin/p2plist', endpoint='p2plist')
-restful.add_resource(MyP2PListApi,'/admin/myp2plist',endpoint='myp2plist')
-restful.add_resource(BillFlowListApi,'/admin/billflowlist',endpoint='billflowlist')
-restful.add_resource(InvestListApi,"/admin/investlist",endpoint="investlist")
+restful.add_resource(MyP2PListApi, '/admin/myp2plist', endpoint='myp2plist')
+restful.add_resource(BillFlowListApi, '/admin/billflowlist', endpoint='billflowlist')
+restful.add_resource(InvestListApi, "/admin/investlist", endpoint="investlist")

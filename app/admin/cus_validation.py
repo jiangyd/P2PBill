@@ -35,7 +35,7 @@ class BankCardVerify(object):
             return name_str
     def id_exist(self,id_int):
         """ID 验证"""
-        if id_int.isdigit():
+        if str(id_int).isdigit():
             if BankCard.id_exist(id_int):
                 if BankCard.id_exist(id_int):
                     return int(id_int)
