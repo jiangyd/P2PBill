@@ -428,11 +428,7 @@ class BankCardApi(Resource):
         db.session.commit()
         return jsonify({"code": 0, "msg": "删除成功"})
 
-class MyP2pApi(Resource):
-    decorators = [auth.login_required]
 
-    def post(self):
-        pass
 
 
 # 添加银行卡
@@ -635,6 +631,21 @@ class MyP2PListApi(Resource):
         return {"code": 0, "msg": "", "num_result": myp2p.total, "objects": myp2p.items, "page": myp2p.page,
                 "total_page": myp2p.pages}
 
+class MyP2PApi(Resource):
+    """我的p2p"""
+    decorators = [auth.login_required]
+    def post(self):
+        parse=reqparse.RequestParser()
+        parse.add_argument('p2p_id',type=int,required=True,location=['json'])
+        parse.add_argument('account',type=str,required=True,location=['json'])
+        parse.add_argument('password',type=str,required=True,location=['json'])
+        parse.add_argument('card_id',type=int,required=True,location=['json'])
+        parse.add_argument('phone',type=int,required=True,location=['json'])
+        args=parse.parse_args()
+        myp2p=UserP2P(user_id=g.user.id,p2p_id=args.p2p_id,account=args.account,password=args.password,card_id=args.card_id,phone=args.phone)
+        db.session.add(myp2p)
+        db.session.commit()
+        return jsonify({"code":0,"msg":""})
 
 class BillFlowListApi(Resource):
     """资金流水"""
@@ -934,5 +945,6 @@ restful.add_resource(GetUserInfoApi, '/admin/userinfo', endpoint='userinfo')
 restful.add_resource(BankListApi, '/admin/banklist', endpoint='banklist')
 restful.add_resource(P2PListApi, '/admin/p2plist', endpoint='p2plist')
 restful.add_resource(MyP2PListApi, '/admin/myp2plist', endpoint='myp2plist')
+restful.add_resource(MyP2PApi,'/admin/myp2p')
 restful.add_resource(BillFlowListApi, '/admin/billflowlist', endpoint='billflowlist')
 restful.add_resource(InvestListApi, "/admin/investlist", endpoint="investlist")
