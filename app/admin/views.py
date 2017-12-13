@@ -646,6 +646,47 @@ class MyP2PApi(Resource):
         db.session.add(myp2p)
         db.session.commit()
         return jsonify({"code":0,"msg":""})
+    def put(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument("id",type=int,required=True,location=['json'])
+        parse.add_argument('p2p_id', type=int, required=True, location=['json'])
+        parse.add_argument('account', type=str, required=True, location=['json'])
+        parse.add_argument('password', type=str, required=True, location=['json'])
+        parse.add_argument('card_id', type=int, required=True, location=['json'])
+        parse.add_argument('phone', type=int, required=True, location=['json'])
+        args = parse.parse_args()
+        myp2p=UserP2P.query.filter_by(id=args.id).first()
+        if myp2p.user_id!=g.user.id:
+            return jsonify({"code":1,"msg":"无权限修改"})
+        myp2p.p2p_id=args.p2p_id
+        myp2p.account=args.account
+        myp2p.password=args.password
+        myp2p.phone=args.phone
+        myp2p.card_id=args.card_id
+        db.session.add(myp2p)
+        db.session.commit()
+        return jsonify({"code": 0, "msg": ""})
+    def get(self):
+        """查看我的p2p信息"""
+        parse=reqparse.RequestParser()
+        parse.add_argument("id", type=int, required=True, location=['args'])
+        args = parse.parse_args()
+        myp2p = UserP2P.query.filter_by(id=args.id).first()
+        return jsonify({"code": 0, "msg": "","data":{"id":myp2p.id,"p2p_id":myp2p.p2p_id,"account":myp2p.account,"password":myp2p.password,"card_id":myp2p.card_id,"phone":myp2p.phone}})
+
+    def delete(self):
+        """删除我的p2p"""
+        parse = reqparse.RequestParser()
+        parse.add_argument("id", type=int, required=True, location=['args'])
+        args = parse.parse_args()
+        myp2p = UserP2P.query.filter_by(id=args.id).first()
+        if myp2p.user_id!=g.user.id:
+            return jsonify({"code":1,"msg":"无权限删除"})
+        return jsonify({"code":0,"msg":""})
+
+
+
+
 
 class BillFlowListApi(Resource):
     """资金流水"""
