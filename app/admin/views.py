@@ -682,6 +682,8 @@ class MyP2PApi(Resource):
         myp2p = UserP2P.query.filter_by(id=args.id).first()
         if myp2p.user_id!=g.user.id:
             return jsonify({"code":1,"msg":"无权限删除"})
+        db.session.delete(myp2p)
+        db.session.commit()
         return jsonify({"code":0,"msg":""})
 
 
