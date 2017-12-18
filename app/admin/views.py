@@ -769,6 +769,69 @@ class InvestListApi(Resource):
                 "page": investlist.page, "total_page": investlist.pages}
 
 
+class InvestApi(Resource):
+    """投资记录接口"""
+    decorators = [auth.login_required]
+    def post(self):
+        """添加投资记录接口"""
+        parse = reqparse.RequestParser()
+        parse.add_argument('p2p_id', type=int, required=True, location=['json'])
+        parse.add_argument('money', type=float, required=True, location=['json'])
+        parse.add_argument('profit', type=float, required=True, location=['json'])
+        parse.add_argument('start_time', type=str, required=True, location=['json'])
+        parse.add_argument('end_time', type=str, required=True, location=['json'])
+        parse.add_argument('lucre', type=float, required=True, location=['json'])
+        args = parse.parse_args()
+        invest=Invest(p2p_id=args.p2p_id,user_id=g.user.id,money=args.money,profit=args.profit,start_time=args.start_time,end_time=args.end_time,lucre=args.lucre)
+        db.session.add(invest)
+        db.session.commit()
+        return jsonify({"code":0,"msg":""})
+    def put(self):
+        """修改投资记录接口"""
+        parse = reqparse.RequestParser()
+        parse.add_argument('id', type=int, required=True, location=['json'])
+        parse.add_argument('p2p_id', type=int, required=True, location=['json'])
+        parse.add_argument('money', type=float, required=True, location=['json'])
+        parse.add_argument('profit', type=float, required=True, location=['json'])
+        parse.add_argument('start_time', type=str, required=True, location=['json'])
+        parse.add_argument('end_time', type=str, required=True, location=['json'])
+        parse.add_argument('lucre', type=float, required=True, location=['json'])
+        args = parse.parse_args()
+        invest=Invest.query.filter_by(id=args.id).first()
+        if invest.user_id!=g.user.id:
+            return jsonify({"code":1,"msg":"无权限修改"})
+        invest.p2p_id=args.p2p_id
+        invest.money=args.money
+        invest.profit=args.profit
+        invest.start_time=args.start_time
+        invest.end_time=args.end_time
+        invest.lucre=args.lucre
+        db.session.add(invest)
+        db.session.commit()
+        return jsonify({"code":0,"msg":""})
+
+    def get(self):
+        """获取投资记录详情接口"""
+        parse=reqparse.RequestParser()
+        parse.add_argument('id', type=int, required=True, location=['args'])
+        args = parse.parse_args()
+        invest=Invest.query.filter_by(id=args.id).first()
+        if invest.user_id!=g.user.id:
+            return jsonify({"code":1,"msg":"无权限查看"})
+        return jsonify({"code":0,"msg":"","data":{"id":invest.id,"p2p_id":invest.p2p_id,"money":invest.money,"profit":invest.profit,"lucre":invest.lucre,"start_time":invest.start_time,"end_time":invest.end_time}})
+    def delete(self):
+        """删除投资记录接口"""
+        parse=reqparse.RequestParser()
+        parse.add_argument('id', type=int, required=True, location=['args'])
+        args = parse.parse_args()
+        invest=Invest.query.filter_by(id=args.id).first()
+        if invest.user_id!=g.user.id:
+            return jsonify({"code":1,"msg":"无权限删除"})
+        db.session.delete(invest)
+        db.session.commit()
+        return jsonify({"code":0,"msg":""})
+
+
 # 注册
 @admin.route("/register", methods=["GET", "POST"])
 def register():
@@ -991,3 +1054,4 @@ restful.add_resource(MyP2PListApi, '/admin/myp2plist', endpoint='myp2plist')
 restful.add_resource(MyP2PApi,'/admin/myp2p')
 restful.add_resource(BillFlowListApi, '/admin/billflowlist', endpoint='billflowlist')
 restful.add_resource(InvestListApi, "/admin/investlist", endpoint="investlist")
+restful.add_resource(InvestApi,"/admin/invest",endpoint="myinvest")
